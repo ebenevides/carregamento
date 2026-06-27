@@ -27,6 +27,12 @@
                             :href="route('pilhas')" :class="navClass('pilhas')">Pilhas</Link>
 
                         <Link v-if="pode(['ADMIN'])"
+                            :href="route('equipamentos')" :class="navClass('equipamentos')">Equipamentos</Link>
+
+                        <Link v-if="pode(['ADMIN'])"
+                            :href="route('mapeamento')" :class="navClass('mapeamento')">Mapeamento</Link>
+
+                        <Link v-if="pode(['ADMIN'])"
                             :href="route('usuarios')" :class="navClass('usuarios')">Usuários</Link>
                     </div>
 

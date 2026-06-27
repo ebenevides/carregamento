@@ -29,6 +29,10 @@
                         class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
                         Cancelar ordem
                     </button>
+                    <button v-if="podeRegistrarDivergencia" @click="modalDivergencia = true"
+                        class="px-3 py-1.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                        + Divergência
+                    </button>
                 </div>
             </div>
 
@@ -161,6 +165,36 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal registrar divergência -->
+        <div v-if="modalDivergencia" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+                <h2 class="font-bold text-lg text-orange-700">Registrar Divergência</h2>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Tipo *</label>
+                    <select v-model="divForm.tipo"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="">Selecione...</option>
+                        <option v-for="t in tiposDivergencia" :key="t.value" :value="t.value">{{ t.label }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Descrição *</label>
+                    <textarea v-model="divForm.descricao" rows="3"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Descreva a divergência..." />
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button @click="modalDivergencia = false; divForm = { tipo: '', descricao: '' }"
+                        class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Cancelar</button>
+                    <button @click="registrarDivergencia"
+                        :disabled="!divForm.tipo || !divForm.descricao.trim() || enviandoDiv"
+                        class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50">
+                        {{ enviandoDiv ? 'Registrando...' : 'Registrar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
     </AppLayout>
 </template>
 
@@ -198,12 +232,44 @@ function pode(perfis) {
     return perfis.includes(authUser.value?.perfil);
 }
 
-const CANCELAVEIS = ['CRIADO', 'TARA_REALIZADA', 'AGUARDANDO_CARREGAMENTO', 'DIVERGENCIA'];
+const CANCELAVEIS   = ['CRIADO', 'TARA_REALIZADA', 'AGUARDANDO_CARREGAMENTO', 'DIVERGENCIA'];
+const STATUS_ATIVOS = ['CRIADO', 'TARA_REALIZADA', 'AGUARDANDO_CARREGAMENTO', 'EM_CARREGAMENTO',
+                       'CARREGAMENTO_CONCLUIDO', 'AGUARDANDO_PESAGEM_FINAL', 'PESAGEM_FINAL_REALIZADA',
+                       'VALIDADO', 'DIVERGENCIA'];
 
-const podeCancelar           = computed(() => pode(['ADMIN', 'EXPEDICAO']) && CANCELAVEIS.includes(props.ordem.status));
-const podeIniciar            = computed(() => pode(['ADMIN', 'EXPEDICAO', 'OPERADOR']) && props.ordem.status === 'AGUARDANDO_CARREGAMENTO');
-const podeConcluir           = computed(() => pode(['ADMIN', 'EXPEDICAO', 'OPERADOR']) && props.ordem.status === 'EM_CARREGAMENTO');
-const podeLiberarFaturamento = computed(() => pode(['ADMIN', 'EXPEDICAO']) && props.ordem.status === 'VALIDADO');
+const podeCancelar             = computed(() => pode(['ADMIN', 'EXPEDICAO']) && CANCELAVEIS.includes(props.ordem.status));
+const podeIniciar              = computed(() => pode(['ADMIN', 'EXPEDICAO', 'OPERADOR']) && props.ordem.status === 'AGUARDANDO_CARREGAMENTO');
+const podeConcluir             = computed(() => pode(['ADMIN', 'EXPEDICAO', 'OPERADOR']) && props.ordem.status === 'EM_CARREGAMENTO');
+const podeLiberarFaturamento   = computed(() => pode(['ADMIN', 'EXPEDICAO']) && props.ordem.status === 'VALIDADO');
+const podeRegistrarDivergencia = computed(() => pode(['ADMIN', 'EXPEDICAO']) && STATUS_ATIVOS.includes(props.ordem.status));
+
+// ─── divergência ─────────────────────────────────────────────────────────────
+
+const modalDivergencia = ref(false);
+const enviandoDiv = ref(false);
+const divForm = ref({ tipo: '', descricao: '' });
+
+const tiposDivergencia = [
+    { value: 'PRODUTO_DIVERGENTE',    label: 'Produto divergente' },
+    { value: 'QUANTIDADE_DIVERGENTE', label: 'Quantidade divergente' },
+    { value: 'VEICULO_DIVERGENTE',    label: 'Veículo divergente' },
+    { value: 'MOTORISTA_DIVERGENTE',  label: 'Motorista divergente' },
+    { value: 'TICKET_INVALIDO',       label: 'Ticket inválido' },
+    { value: 'TARA_INVALIDA',         label: 'Tara inválida' },
+    { value: 'PESO_FORA_TOLERANCIA',  label: 'Peso fora da tolerância' },
+    { value: 'PILHA_SEM_PRODUTO',     label: 'Pilha sem produto' },
+    { value: 'PONTO_INDISPONIVEL',    label: 'Ponto indisponível' },
+    { value: 'PEDIDO_INVALIDO',       label: 'Pedido inválido' },
+    { value: 'OUTRO',                 label: 'Outro' },
+];
+
+function registrarDivergencia() {
+    enviandoDiv.value = true;
+    router.post(route('ordens.divergencias.store', { ordem: props.ordem.id }), divForm.value, {
+        onFinish: () => { enviandoDiv.value = false; },
+        onSuccess: () => { modalDivergencia.value = false; divForm.value = { tipo: '', descricao: '' }; },
+    });
+}
 
 // ─── ações ───────────────────────────────────────────────────────────────────
 

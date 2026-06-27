@@ -3,10 +3,12 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\DivergenciaController;
+use App\Http\Controllers\Web\EquipamentoController;
 use App\Http\Controllers\Web\FilaController;
 use App\Http\Controllers\Web\OrdemCarregamentoController;
 use App\Http\Controllers\Web\PilhaProdutoController;
 use App\Http\Controllers\Web\PontoCarregamentoController;
+use App\Http\Controllers\Web\ProdutoPilhaPontoController;
 use App\Http\Controllers\Web\UsuarioController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -30,9 +32,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/ordens/{ordem}/iniciar', [OrdemCarregamentoController::class, 'iniciar'])->name('ordens.iniciar');
     Route::post('/ordens/{ordem}/concluir', [OrdemCarregamentoController::class, 'concluir'])->name('ordens.concluir');
     Route::post('/ordens/{ordem}/liberar-faturamento', [OrdemCarregamentoController::class, 'liberarFaturamento'])->name('ordens.liberar-faturamento');
+    Route::post('/ordens/{ordem}/divergencias', [OrdemCarregamentoController::class, 'registrarDivergencia'])->name('ordens.divergencias.store');
     Route::get('/fila', [FilaController::class, 'index'])->name('fila');
     Route::get('/divergencias', [DivergenciaController::class, 'index'])->name('divergencias');
     Route::post('/divergencias/{divergencia}/resolver', [\App\Http\Controllers\Api\V1\DivergenciaController::class, 'resolver'])->name('divergencias.resolver');
+    Route::post('/divergencias/{divergencia}/cancelar', [DivergenciaController::class, 'cancelar'])->name('divergencias.cancelar');
     Route::get('/pontos', [PontoCarregamentoController::class, 'index'])->name('pontos');
     Route::post('/pontos', [PontoCarregamentoController::class, 'store'])->name('pontos.store');
     Route::put('/pontos/{pontoCarregamento}', [PontoCarregamentoController::class, 'update'])->name('pontos.update');
@@ -44,6 +48,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/pilhas', [PilhaProdutoController::class, 'store'])->name('pilhas.store');
     Route::put('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'update'])->name('pilhas.update');
     Route::delete('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'destroy'])->name('pilhas.destroy');
+
+    Route::get('/equipamentos', [EquipamentoController::class, 'index'])->name('equipamentos');
+    Route::post('/equipamentos', [EquipamentoController::class, 'store'])->name('equipamentos.store');
+    Route::put('/equipamentos/{equipamento}', [EquipamentoController::class, 'update'])->name('equipamentos.update');
+    Route::delete('/equipamentos/{equipamento}', [EquipamentoController::class, 'destroy'])->name('equipamentos.destroy');
+
+    Route::get('/mapeamento', [ProdutoPilhaPontoController::class, 'index'])->name('mapeamento');
+    Route::post('/mapeamento', [ProdutoPilhaPontoController::class, 'store'])->name('mapeamento.store');
+    Route::put('/mapeamento/{mapeamento}', [ProdutoPilhaPontoController::class, 'update'])->name('mapeamento.update');
+    Route::delete('/mapeamento/{mapeamento}', [ProdutoPilhaPontoController::class, 'destroy'])->name('mapeamento.destroy');
 
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios');
     Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');

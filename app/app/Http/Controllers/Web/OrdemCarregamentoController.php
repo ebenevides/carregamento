@@ -7,10 +7,12 @@ use App\Domain\Carregamento\Actions\ConcluirCarregamentoAction;
 use App\Domain\Carregamento\Actions\CriarOrdemAction;
 use App\Domain\Carregamento\Actions\IniciarCarregamentoAction;
 use App\Domain\Carregamento\Actions\LiberarParaFaturamentoAction;
+use App\Domain\Carregamento\Actions\RegistrarDivergenciaAction;
 use App\Domain\Carregamento\DTOs\AlterarStatusDTO;
 use App\Domain\Carregamento\DTOs\CriarOrdemDTO;
 use App\Domain\Carregamento\Enums\OrigemEvento;
 use App\Domain\Carregamento\Enums\StatusOrdem;
+use App\Domain\Carregamento\Enums\TipoDivergencia;
 use App\Domain\Carregamento\Enums\TipoEvento;
 use App\Domain\Carregamento\Models\OrdemCarregamento;
 use App\Domain\Carregamento\Models\PontoCarregamento;
@@ -218,5 +220,26 @@ class OrdemCarregamentoController extends Controller
         );
 
         return back()->with('success', 'Ordem liberada para faturamento.');
+    }
+
+    public function registrarDivergencia(Request $request, OrdemCarregamento $ordem, RegistrarDivergenciaAction $action): RedirectResponse
+    {
+        $data = $request->validate([
+            'tipo'      => ['required', 'string'],
+            'descricao' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $tipo = TipoDivergencia::from($data['tipo']);
+
+        $action->execute(
+            ordem: $ordem,
+            tipo: $tipo,
+            origem: OrigemEvento::PAINEL_WEB,
+            descricao: $data['descricao'],
+            usuarioId: auth()->id(),
+            usuarioNome: auth()->user()->name,
+        );
+
+        return back()->with('success', 'Divergência registrada.');
     }
 }
