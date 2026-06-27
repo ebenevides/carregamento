@@ -34,6 +34,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/ordens/{ordem}/liberar-faturamento', [OrdemCarregamentoController::class, 'liberarFaturamento'])->name('ordens.liberar-faturamento');
     Route::post('/ordens/{ordem}/divergencias', [OrdemCarregamentoController::class, 'registrarDivergencia'])->name('ordens.divergencias.store');
     Route::get('/fila', [FilaController::class, 'index'])->name('fila');
+    Route::post('/fila/{ordem}/entrar', [FilaController::class, 'entrar'])->name('fila.entrar');
+    Route::post('/fila/{ordem}/iniciar', [FilaController::class, 'iniciar'])->name('fila.iniciar');
+    Route::post('/fila/{ordem}/concluir', [FilaController::class, 'concluir'])->name('fila.concluir');
+    Route::post('/fila/{ordem}/cancelar', [FilaController::class, 'cancelar'])->name('fila.cancelar');
     Route::get('/divergencias', [DivergenciaController::class, 'index'])->name('divergencias');
     Route::post('/divergencias/{divergencia}/resolver', [\App\Http\Controllers\Api\V1\DivergenciaController::class, 'resolver'])->name('divergencias.resolver');
     Route::post('/divergencias/{divergencia}/cancelar', [DivergenciaController::class, 'cancelar'])->name('divergencias.cancelar');
