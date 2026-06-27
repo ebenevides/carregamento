@@ -89,7 +89,7 @@ const cards = computed(() => [
 
 function aplicarFiltros() {
     agora.value = new Date().toLocaleTimeString('pt-BR');
-    router.get('/', filtros.value, { preserveScroll: true });
+    router.get(route('dashboard'), filtros.value, { preserveScroll: true });
 }
 
 function formatDate(iso) {
