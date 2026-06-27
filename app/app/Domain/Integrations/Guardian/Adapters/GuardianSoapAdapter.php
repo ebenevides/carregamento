@@ -136,18 +136,60 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
 
     private function mapearTicket(string $ticket, mixed $t): TicketGuardianDTO
     {
-        // Ticket struct retorna campos decimal — cast direto, sem parse de string BR
-        $pesoBruto  = isset($t->PesoBruto) && (float) $t->PesoBruto > 0 ? (float) $t->PesoBruto : null;
-        $tara       = isset($t->Tara) && (float) $t->Tara > 0 ? (float) $t->Tara : null;
-        $pesoLiq    = ($pesoBruto !== null && $tara !== null) ? $pesoBruto - $tara : null;
-
-        $placa  = isset($t->PlacaCarreta) && (string) $t->PlacaCarreta !== '' ? (string) $t->PlacaCarreta : null;
+        $placa  = isset($t->PlacaCarreta) && (string) $t->PlacaCarreta !== '' ? trim((string) $t->PlacaCarreta) : null;
         $estado = isset($t->Estado) ? (string) $t->Estado : 'DESCONHECIDO';
 
+        // Extrair pesos das operações:
+        //   TipoOperacaoCodigo=2 (Pesagem Inicial) → Peso = tara
+        //   TipoOperacaoCodigo=3 (Pesagem Final)   → Peso = bruto, PesoLiqObtido = líquido
+        $tara      = null;
+        $pesoBruto = null;
+        $pesoLiq   = null;
+        $motorista = null;
+
+        $ops = $t->OperacaoTicket ?? null;
+        $opArr = [];
+        if ($ops !== null) {
+            if (isset($ops->OperacaoTicket)) {
+                $opArr = is_array($ops->OperacaoTicket) ? $ops->OperacaoTicket : [$ops->OperacaoTicket];
+            } elseif (is_array($ops)) {
+                $opArr = $ops;
+            }
+        }
+
+        foreach ($opArr as $op) {
+            $tipo = (int) ($op->TipoOperacaoCodigo ?? 0);
+            $peso = isset($op->Peso) && (float) $op->Peso > 0 ? (float) $op->Peso : null;
+
+            if ($tipo === 2 && $peso !== null) {
+                $tara = $peso; // Pesagem Inicial = tara
+            }
+
+            if ($tipo === 3) {
+                if ($peso !== null) {
+                    $pesoBruto = $peso; // Pesagem Final = bruto
+                }
+                if (isset($op->PesoLiqObtido) && (float) $op->PesoLiqObtido > 0) {
+                    $pesoLiq = (float) $op->PesoLiqObtido;
+                }
+            }
+
+            // Motorista vem do pré-cadastro (op tipo 1)
+            if ($tipo === 1 && $motorista === null) {
+                $nome = isset($op->MotoristaDescricao) && (string) $op->MotoristaDescricao !== ''
+                    ? (string) $op->MotoristaDescricao
+                    : null;
+                $motorista = $nome;
+            }
+        }
+
+        // Fallback: Ticket.PesoBruto raiz (última pesagem registrada)
+        if ($pesoBruto === null && isset($t->PesoBruto) && (float) $t->PesoBruto > 0) {
+            $pesoBruto = (float) $t->PesoBruto;
+        }
+
         $dataEntrada = null;
-        if (isset($t->DataCriacao) && $t->DataCriacao instanceof \DateTime) {
-            $dataEntrada = $t->DataCriacao->format('Y-m-d H:i:s');
-        } elseif (isset($t->DataCriacao) && (string) $t->DataCriacao !== '') {
+        if (isset($t->DataCriacao) && (string) $t->DataCriacao !== '') {
             $dataEntrada = (string) $t->DataCriacao;
         }
 
@@ -155,7 +197,7 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
             ticket:      $ticket,
             status:      $estado,
             placa:       $placa,
-            motorista:   null, // struct Ticket não expõe motorista diretamente
+            motorista:   $motorista,
             tara:        $tara,
             pesoBruto:   $pesoBruto,
             pesoLiquido: $pesoLiq,
