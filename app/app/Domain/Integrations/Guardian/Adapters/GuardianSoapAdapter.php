@@ -14,6 +14,10 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
     private const CIRCUIT_KEY = 'guardian_circuit_open';
     private const CIRCUIT_TTL = 300;
 
+    // Parâmetros de autenticação/validação exigidos pelos métodos [INTERFACE]
+    private const AUTH_PRODUTO = 'WS G';
+    private const AUTH_CODIGO  = '01';
+
     public function __construct()
     {
         if (Cache::get(self::CIRCUIT_KEY)) {
@@ -46,19 +50,31 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
     public function consultarTicket(string $ticket): TicketGuardianDTO
     {
         try {
-            $resposta = $this->client->TicketCompletoObtem([
-                'voDadoTicket' => [
-                    'TicketCodigo' => $ticket,
-                    'PlacaCarreta' => '',
-                    'Identificador' => '',
-                ],
+            // ExportaTicketParametro é o método [INTERFACE] documentado para consulta por código.
+            // Prioridade: 1º ticketCodigo → 2º ticketPlaca → 3º ticketTAG
+            $resposta = $this->client->ExportaTicketParametro([
+                'ticketCodigo' => $ticket,
+                'ticketPlaca'  => '',
+                'ticketTAG'    => '',
+                'produto'      => self::AUTH_PRODUTO,
+                'codigo'       => self::AUTH_CODIGO,
             ]);
 
-            $vo = $resposta->TicketCompletoObtemResult ?? null;
+            if (($resposta->Erro ?? 0) !== 0) {
+                throw new \RuntimeException("Guardian erro {$resposta->Erro}: " . ($resposta->ErroMSG ?? ''));
+            }
+
+            $lista = $resposta->ExportaTicketParametroResult ?? null;
+
+            // Lista vazia = ticket não encontrado
+            $primeiro = $this->primeiroTicket($lista);
+            if ($primeiro === null) {
+                throw new \RuntimeException("Ticket {$ticket} não encontrado no Guardian.");
+            }
 
             Log::info('Guardian consultarTicket', ['ticket' => $ticket]);
 
-            return $this->mapearVO($ticket, $vo);
+            return $this->mapearTicket($ticket, $primeiro);
         } catch (SoapFault $e) {
             $this->tratarFalha($e);
         }
@@ -98,54 +114,54 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         }
     }
 
-    private function mapearVO(string $ticket, mixed $vo): TicketGuardianDTO
+    private function primeiroTicket(mixed $lista): mixed
     {
-        $get = fn ($field) => isset($vo->$field) && (string) $vo->$field !== '' ? (string) $vo->$field : null;
-
-        // Ticket não encontrado = todos os campos retornam vazios
-        $codigo = $get('Codigo') ?? $get('PlacaCarreta') ?? $get('DataCriacao');
-        if ($codigo === null) {
-            throw new \RuntimeException("Ticket {$ticket} não encontrado no Guardian.");
+        if ($lista === null) {
+            return null;
         }
 
-        $tara    = $this->parsePeso($get('Tara'));
-        $bruto   = $this->parsePeso($get('PesoBruto'));
-        $liquido = $this->parsePeso($get('PesoLiquido'));
+        // ArrayOfTicket pode chegar como objeto com ->Ticket ou como array direto
+        if (is_object($lista) && isset($lista->Ticket)) {
+            $t = $lista->Ticket;
+            return is_array($t) ? ($t[0] ?? null) : $t;
+        }
 
-        // Motorista em CDCColeta.MotoristaEmail, transportadora como fallback
-        $motorista = null;
-        if (isset($vo->CDCColeta->MotoristaEmail) && (string) $vo->CDCColeta->MotoristaEmail !== '') {
-            $motorista = (string) $vo->CDCColeta->MotoristaEmail;
-        } elseif (isset($vo->Transportadora->RazaoSocial) && (string) $vo->Transportadora->RazaoSocial !== '') {
-            $motorista = (string) $vo->Transportadora->RazaoSocial;
+        if (is_array($lista)) {
+            return $lista[0] ?? null;
+        }
+
+        // objeto único (apenas 1 ticket)
+        return $lista;
+    }
+
+    private function mapearTicket(string $ticket, mixed $t): TicketGuardianDTO
+    {
+        // Ticket struct retorna campos decimal — cast direto, sem parse de string BR
+        $pesoBruto  = isset($t->PesoBruto) && (float) $t->PesoBruto > 0 ? (float) $t->PesoBruto : null;
+        $tara       = isset($t->Tara) && (float) $t->Tara > 0 ? (float) $t->Tara : null;
+        $pesoLiq    = ($pesoBruto !== null && $tara !== null) ? $pesoBruto - $tara : null;
+
+        $placa  = isset($t->PlacaCarreta) && (string) $t->PlacaCarreta !== '' ? (string) $t->PlacaCarreta : null;
+        $estado = isset($t->Estado) ? (string) $t->Estado : 'DESCONHECIDO';
+
+        $dataEntrada = null;
+        if (isset($t->DataCriacao) && $t->DataCriacao instanceof \DateTime) {
+            $dataEntrada = $t->DataCriacao->format('Y-m-d H:i:s');
+        } elseif (isset($t->DataCriacao) && (string) $t->DataCriacao !== '') {
+            $dataEntrada = (string) $t->DataCriacao;
         }
 
         return new TicketGuardianDTO(
             ticket:      $ticket,
-            status:      $get('Estado') ?? $get('EstadoAguardando') ?? 'DESCONHECIDO',
-            placa:       $get('PlacaCarreta'),
-            motorista:   $motorista,
+            status:      $estado,
+            placa:       $placa,
+            motorista:   null, // struct Ticket não expõe motorista diretamente
             tara:        $tara,
-            pesoBruto:   $bruto,
-            pesoLiquido: $liquido,
-            dataEntrada: $get('DataCriacao'),
+            pesoBruto:   $pesoBruto,
+            pesoLiquido: $pesoLiq,
+            dataEntrada: $dataEntrada,
             dataSaida:   null,
         );
-    }
-
-    /** Guardian pode retornar pesos com vírgula (BR) ou ponto decimal. */
-    private function parsePeso(?string $valor): ?float
-    {
-        if ($valor === null || $valor === '' || $valor === '0') {
-            return null;
-        }
-
-        // "47.230,500" → "47230.500" ou "47230.5" → 47230.5
-        $normalizado = str_replace(['.', ','], ['', '.'], $valor);
-
-        $float = (float) $normalizado;
-
-        return $float > 0 ? $float : null;
     }
 
     private function tratarFalha(SoapFault $e): never
