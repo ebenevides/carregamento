@@ -27,7 +27,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/divergencias', [DivergenciaController::class, 'index'])->name('divergencias');
     Route::post('/divergencias/{divergencia}/resolver', [\App\Http\Controllers\Api\V1\DivergenciaController::class, 'resolver'])->name('divergencias.resolver');
     Route::get('/pontos', [PontoCarregamentoController::class, 'index'])->name('pontos');
+    Route::post('/pontos', [PontoCarregamentoController::class, 'store'])->name('pontos.store');
+    Route::put('/pontos/{pontoCarregamento}', [PontoCarregamentoController::class, 'update'])->name('pontos.update');
+    Route::delete('/pontos/{pontoCarregamento}', [PontoCarregamentoController::class, 'destroy'])->name('pontos.destroy');
+    Route::post('/pontos/{pontoCarregamento}/ativar', [PontoCarregamentoController::class, 'ativar'])->name('pontos.ativar');
+    Route::post('/pontos/{pontoCarregamento}/inativar', [PontoCarregamentoController::class, 'inativar'])->name('pontos.inativar');
+
     Route::get('/pilhas', [PilhaProdutoController::class, 'index'])->name('pilhas');
+    Route::post('/pilhas', [PilhaProdutoController::class, 'store'])->name('pilhas.store');
+    Route::put('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'update'])->name('pilhas.update');
+    Route::delete('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'destroy'])->name('pilhas.destroy');
 });
 
 Route::middleware('auth')->group(function () {
