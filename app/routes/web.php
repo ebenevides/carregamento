@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\DivergenciaController;
+use App\Http\Controllers\Web\IntegracaoGuardianController;
 use App\Http\Controllers\Web\EquipamentoController;
 use App\Http\Controllers\Web\FilaController;
 use App\Http\Controllers\Web\OrdemCarregamentoController;
@@ -62,6 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/mapeamento', [ProdutoPilhaPontoController::class, 'store'])->name('mapeamento.store');
     Route::put('/mapeamento/{mapeamento}', [ProdutoPilhaPontoController::class, 'update'])->name('mapeamento.update');
     Route::delete('/mapeamento/{mapeamento}', [ProdutoPilhaPontoController::class, 'destroy'])->name('mapeamento.destroy');
+
+    Route::get('/integracoes/guardian', [IntegracaoGuardianController::class, 'index'])->name('integracoes.guardian');
+    Route::post('/integracoes/guardian/consultar-ticket', [IntegracaoGuardianController::class, 'consultarTicket'])->name('integracoes.guardian.consultar-ticket');
+    Route::post('/integracoes/guardian/sync-todas', [IntegracaoGuardianController::class, 'sincronizarTodas'])->name('integracoes.guardian.sync-todas');
+    Route::post('/integracoes/guardian/{ordem}/sync-tara', [IntegracaoGuardianController::class, 'sincronizarTaraOrdem'])->name('integracoes.guardian.sync-tara');
+    Route::post('/integracoes/guardian/{ordem}/sync-pesagem', [IntegracaoGuardianController::class, 'sincronizarPesagemOrdem'])->name('integracoes.guardian.sync-pesagem');
 
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios');
     Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');

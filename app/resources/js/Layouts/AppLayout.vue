@@ -33,6 +33,9 @@
                             :href="route('mapeamento')" :class="navClass('mapeamento')">Mapeamento</Link>
 
                         <Link v-if="pode(['ADMIN'])"
+                            :href="route('integracoes.guardian')" :class="navClass('guardian')">Guardian</Link>
+
+                        <Link v-if="pode(['ADMIN'])"
                             :href="route('usuarios')" :class="navClass('usuarios')">Usuários</Link>
                     </div>
 
