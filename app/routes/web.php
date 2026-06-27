@@ -24,6 +24,12 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/ordens', [OrdemCarregamentoController::class, 'index'])->name('ordens');
+    Route::post('/ordens', [OrdemCarregamentoController::class, 'store'])->name('ordens.store');
+    Route::get('/ordens/{ordem}', [OrdemCarregamentoController::class, 'show'])->name('ordens.show');
+    Route::post('/ordens/{ordem}/cancelar', [OrdemCarregamentoController::class, 'cancelar'])->name('ordens.cancelar');
+    Route::post('/ordens/{ordem}/iniciar', [OrdemCarregamentoController::class, 'iniciar'])->name('ordens.iniciar');
+    Route::post('/ordens/{ordem}/concluir', [OrdemCarregamentoController::class, 'concluir'])->name('ordens.concluir');
+    Route::post('/ordens/{ordem}/liberar-faturamento', [OrdemCarregamentoController::class, 'liberarFaturamento'])->name('ordens.liberar-faturamento');
     Route::get('/fila', [FilaController::class, 'index'])->name('fila');
     Route::get('/divergencias', [DivergenciaController::class, 'index'])->name('divergencias');
     Route::post('/divergencias/{divergencia}/resolver', [\App\Http\Controllers\Api\V1\DivergenciaController::class, 'resolver'])->name('divergencias.resolver');
