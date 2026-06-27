@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\FilaController;
 use App\Http\Controllers\Web\OrdemCarregamentoController;
 use App\Http\Controllers\Web\PilhaProdutoController;
 use App\Http\Controllers\Web\PontoCarregamentoController;
+use App\Http\Controllers\Web\UsuarioController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,6 +38,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/pilhas', [PilhaProdutoController::class, 'store'])->name('pilhas.store');
     Route::put('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'update'])->name('pilhas.update');
     Route::delete('/pilhas/{pilhaProduto}', [PilhaProdutoController::class, 'destroy'])->name('pilhas.destroy');
+
+    Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios');
+    Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
+    Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
+    Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
+    Route::post('/usuarios/{usuario}/toggle-ativo', [UsuarioController::class, 'toggleAtivo'])->name('usuarios.toggle-ativo');
 });
 
 Route::middleware('auth')->group(function () {

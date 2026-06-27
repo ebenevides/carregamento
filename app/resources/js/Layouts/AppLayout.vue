@@ -25,6 +25,9 @@
 
                         <Link v-if="pode(['ADMIN'])"
                             :href="route('pilhas')" :class="navClass('pilhas')">Pilhas</Link>
+
+                        <Link v-if="pode(['ADMIN'])"
+                            :href="route('usuarios')" :class="navClass('usuarios')">Usuários</Link>
                     </div>
 
                     <div class="flex items-center gap-3 text-sm text-gray-600">
