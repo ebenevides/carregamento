@@ -5,7 +5,6 @@ namespace App\Domain\Integrations\Guardian\Adapters;
 use App\Domain\Integrations\Guardian\DTOs\TicketGuardianDTO;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use SoapClient;
 use SoapFault;
 
@@ -13,7 +12,7 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
 {
     private SoapClient $client;
     private const CIRCUIT_KEY = 'guardian_circuit_open';
-    private const CIRCUIT_TTL = 300; // 5 min offline antes de tentar novamente
+    private const CIRCUIT_TTL = 300;
 
     public function __construct()
     {
@@ -22,13 +21,19 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         }
 
         try {
+            $wsdl = config('integrations.guardian.wsdl');
+
+            // WSDL interno aponta <soap:address location> para porta 80; service está na porta do WSDL.
+            $location = preg_replace('/\?.*$/', '', $wsdl);
+
             $this->client = new SoapClient(
-                config('integrations.guardian.wsdl'),
+                $wsdl,
                 [
+                    'location'           => $location,
                     'trace'              => false,
                     'exceptions'         => true,
                     'connection_timeout' => config('integrations.guardian.timeout', 10),
-                    'cache_wsdl'         => WSDL_CACHE_DISK,
+                    'cache_wsdl'         => WSDL_CACHE_NONE,
                 ]
             );
         } catch (SoapFault $e) {
@@ -40,14 +45,20 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
 
     public function consultarTicket(string $ticket): TicketGuardianDTO
     {
-        // Nomes dos métodos SOAP a confirmar via $this->client->__getFunctions()
-        // Substituir 'ConsultarTicket' pelo método real retornado pelo WSDL
         try {
-            $resultado = $this->client->__soapCall('ConsultarTicket', [['Ticket' => $ticket]]);
+            $resposta = $this->client->TicketCompletoObtem([
+                'voDadoTicket' => [
+                    'TicketCodigo' => $ticket,
+                    'PlacaCarreta' => '',
+                    'Identificador' => '',
+                ],
+            ]);
+
+            $vo = $resposta->TicketCompletoObtemResult ?? null;
 
             Log::info('Guardian consultarTicket', ['ticket' => $ticket]);
 
-            return $this->mapearTicket($ticket, $resultado);
+            return $this->mapearVO($ticket, $vo);
         } catch (SoapFault $e) {
             $this->tratarFalha($e);
         }
@@ -55,26 +66,26 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
 
     public function consultarTara(string $ticket): float
     {
-        try {
-            $resultado = $this->client->__soapCall('ConsultarTara', [['Ticket' => $ticket]]);
+        $dto = $this->consultarTicket($ticket);
+        $tara = $dto->taraKg();
 
-            // Peso em kg — Guardian confirmado retornar kg
-            return (float) ($resultado->Tara ?? $resultado->tara ?? 0);
-        } catch (SoapFault $e) {
-            $this->tratarFalha($e);
+        if ($tara === null || $tara <= 0) {
+            throw new \RuntimeException("Tara não disponível para ticket {$ticket}.");
         }
+
+        return $tara;
     }
 
     public function consultarPesoFinal(string $ticket): float
     {
-        try {
-            $resultado = $this->client->__soapCall('ConsultarPesoFinal', [['Ticket' => $ticket]]);
+        $dto = $this->consultarTicket($ticket);
+        $bruto = $dto->pesoBrutoKg();
 
-            // Peso em kg — Guardian confirmado retornar kg
-            return (float) ($resultado->PesoBruto ?? $resultado->peso_bruto ?? 0);
-        } catch (SoapFault $e) {
-            $this->tratarFalha($e);
+        if ($bruto === null || $bruto <= 0) {
+            throw new \RuntimeException("Peso bruto não disponível para ticket {$ticket}.");
         }
+
+        return $bruto;
     }
 
     public function ticketExiste(string $ticket): bool
@@ -82,27 +93,59 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         try {
             $this->consultarTicket($ticket);
             return true;
-        } catch (\Exception) {
+        } catch (\Throwable) {
             return false;
         }
     }
 
-    private function mapearTicket(string $ticket, mixed $resultado): TicketGuardianDTO
+    private function mapearVO(string $ticket, mixed $vo): TicketGuardianDTO
     {
-        // Ajustar nomes dos campos conforme XML real do Guardian
-        $r = (array) $resultado;
+        $get = fn ($field) => isset($vo->$field) && (string) $vo->$field !== '' ? (string) $vo->$field : null;
+
+        // Ticket não encontrado = todos os campos retornam vazios
+        $codigo = $get('Codigo') ?? $get('PlacaCarreta') ?? $get('DataCriacao');
+        if ($codigo === null) {
+            throw new \RuntimeException("Ticket {$ticket} não encontrado no Guardian.");
+        }
+
+        $tara    = $this->parsePeso($get('Tara'));
+        $bruto   = $this->parsePeso($get('PesoBruto'));
+        $liquido = $this->parsePeso($get('PesoLiquido'));
+
+        // Motorista em CDCColeta.MotoristaEmail, transportadora como fallback
+        $motorista = null;
+        if (isset($vo->CDCColeta->MotoristaEmail) && (string) $vo->CDCColeta->MotoristaEmail !== '') {
+            $motorista = (string) $vo->CDCColeta->MotoristaEmail;
+        } elseif (isset($vo->Transportadora->RazaoSocial) && (string) $vo->Transportadora->RazaoSocial !== '') {
+            $motorista = (string) $vo->Transportadora->RazaoSocial;
+        }
 
         return new TicketGuardianDTO(
-            ticket: $ticket,
-            status: (string) ($r['Status'] ?? $r['status'] ?? 'DESCONHECIDO'),
-            placa: (string) ($r['Placa'] ?? $r['placa'] ?? null) ?: null,
-            motorista: (string) ($r['Motorista'] ?? $r['motorista'] ?? null) ?: null,
-            tara: isset($r['Tara']) ? (float) $r['Tara'] : null,
-            pesoBruto: isset($r['PesoBruto']) ? (float) $r['PesoBruto'] : null,
-            pesoLiquido: isset($r['PesoLiquido']) ? (float) $r['PesoLiquido'] : null,
-            dataEntrada: (string) ($r['DataEntrada'] ?? '') ?: null,
-            dataSaida: (string) ($r['DataSaida'] ?? '') ?: null,
+            ticket:      $ticket,
+            status:      $get('Estado') ?? $get('EstadoAguardando') ?? 'DESCONHECIDO',
+            placa:       $get('PlacaCarreta'),
+            motorista:   $motorista,
+            tara:        $tara,
+            pesoBruto:   $bruto,
+            pesoLiquido: $liquido,
+            dataEntrada: $get('DataCriacao'),
+            dataSaida:   null,
         );
+    }
+
+    /** Guardian pode retornar pesos com vírgula (BR) ou ponto decimal. */
+    private function parsePeso(?string $valor): ?float
+    {
+        if ($valor === null || $valor === '' || $valor === '0') {
+            return null;
+        }
+
+        // "47.230,500" → "47230.500" ou "47230.5" → 47230.5
+        $normalizado = str_replace(['.', ','], ['', '.'], $valor);
+
+        $float = (float) $normalizado;
+
+        return $float > 0 ? $float : null;
     }
 
     private function tratarFalha(SoapFault $e): never
