@@ -1,0 +1,33 @@
+# Dev overrides — hot-reload, xdebug, source mounts
+services:
+  app:
+    volumes:
+      - ./app:/var/www/html
+      - ./docker/php/conf.d/dev.ini:/usr/local/etc/php/conf.d/dev.ini:ro
+
+  horizon:
+    volumes:
+      - ./app:/var/www/html
+
+  nginx:
+    volumes:
+      - ./app/public:/var/www/html/public:ro
+
+  node:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    networks:
+      - carregamento
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

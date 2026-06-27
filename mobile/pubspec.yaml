@@ -1,0 +1,40 @@
+name: carregamento_operador
+description: App do operador de pá carregadeira — Sistema de Carregamento
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP e API
+  dio: ^5.7.0
+  flutter_secure_storage: ^9.2.2
+
+  # Estado (Riverpod)
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navegação
+  go_router: ^14.6.2
+
+  # WebSocket (fila real-time)
+  web_socket_channel: ^3.0.1
+
+  # UI
+  cupertino_icons: ^1.0.8
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.3
+
+flutter:
+  uses-material-design: true
