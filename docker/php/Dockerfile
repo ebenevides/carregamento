@@ -64,7 +64,8 @@ WORKDIR /var/www/html
 COPY --from=composer-builder /app ./
 COPY --from=node-builder /app/public/build ./public/build
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN rm -f public/hot \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 9000
 
