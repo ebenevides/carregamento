@@ -1,17 +1,20 @@
 # STATUS — Projeto Carregamento
 
 ## Status atual
-Fases 0–8 concluídas. Restam: Fase 9 (pesagem/validação já implementada nas actions) e Fase 10 (testes).
+Fases 0–10 concluídas. Fase 11 (App Operador + Motorista + Chat) planejada em
+`docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md` / `docs/PLANO_APP_OPERADOR_MOTORISTA.md`, ainda não
+iniciada (Etapa 11.1 — migration `documento`/`motorista_user_id` — é o próximo passo real).
 
 ## Última etapa concluída
-Fase 8 — Integração Guardian SOAP + Protheus HTTP (mocks + adapters reais).
+Hardening da integração Guardian pós-Fase 8: `GuardianSoapAdapter` migrado para os métodos reais do
+WSDL (`ExportaTicketParametro`), extração correta de tara/peso bruto, e nova tela de relatório de
+tickets por período (web + export PDF via dompdf), com métricas de volume/tempo de pátio/throughput.
 
 ## Próximas etapas
-- Fase 9: documentar e expor validação de peso (já implementada em `RegistrarPesagemFinalAction`)
-- Fase 10: testes Pest (unitários + integração)
-- Configurar autenticação web completa (Breeze ou customizada)
+- Fase 11 / Etapa 11.1: migration `documento` em `users` + `motorista_user_id` em
+  `ordens_carregamento` (ver `docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md`)
+- Investigar 14 testes falhando por `419` (CSRF/sessão) em `php artisan test` — ver Pendências abaixo
 - Configurar PostgreSQL + Redis em produção
-- Validar WSDL Guardian real: `$client->__getFunctions()`
 - Definir URL/credenciais Protheus real
 
 ## O que foi feito (Fases 5–8)
@@ -51,12 +54,27 @@ Fase 8 — Integração Guardian SOAP + Protheus HTTP (mocks + adapters reais).
 
 ## Total: 38 rotas API registradas
 
+### Fase 8+ — Hardening Guardian e relatório por período
+- `GuardianSoapAdapter` migrado para `ExportaTicketParametro` (métodos reais do WSDL, confirmados)
+- Extração correta de tara e peso bruto a partir das operações do ticket
+- `GuardianService::relatorioPorPeriodo()` — lista tickets do período + métricas (total, peso
+  líquido total, tempo médio de pátio, throughput por hora), excluindo placas fictícias de
+  entrada/saída de funcionário (`ENT0000`/`SAI0000`)
+- `IntegracaoGuardianController::relatorioPeriodo`/`relatorioPeriodoPdf` + `Relatorio.vue` +
+  `resources/views/guardian/relatorio-pdf.blade.php` (dompdf, paisagem A4)
+- Pivot `produto_pilha_ponto` passa a herdar `produto_codigo`/`produto_descricao` da pilha ao
+  sincronizar pontos (`PilhaProduto::pontosCarregamento()->withPivot(...)`); coluna `produto_codigo`
+  virou nullable
+- Documentação reorganizada: todos os `.md` soltos (exceto READMEs) movidos para `docs/`; `CLAUDE.md`
+  criado na raiz com guia de arquitetura/comandos para instâncias futuras do Claude Code
+
 ## Pendências críticas para produção
-- [ ] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
-- [ ] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
+- [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
+- [x] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
+- [ ] 14 testes falhando com `419` (CSRF/sessão) em `ProfileTest`/`Auth*Test` — investigar antes de
+      confiar na suíte (`docker exec carregamento-app-1 php artisan test`)
 - [ ] Configurar `PROTHEUS_BASE_URL` + credenciais
-- [ ] Configurar auth web completa (Breeze ou manual)
-- [ ] Escrever testes Pest (Fase 10)
+- [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
 
 ## Última atualização
-2026-06-26
+2026-07-08

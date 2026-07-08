@@ -13,6 +13,11 @@
 | 8 | Integração Guardian | Concluído | 100% |
 | 9 | Pesagem final e validação | Concluído | 100% |
 | 10 | Testes e homologação | Concluído | 100% |
+| 11 | App Operador + Motorista + Chat | Planejado | 0% |
+
+Plano detalhado da Fase 11 em `docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md` (backend) e
+`docs/PLANO_APP_OPERADOR_MOTORISTA.md` (Flutter). Etapa 11.1 (migration `documento`/
+`motorista_user_id`) ainda não iniciada.
 
 ---
 
