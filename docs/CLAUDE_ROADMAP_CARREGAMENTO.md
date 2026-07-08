@@ -23,8 +23,8 @@ Execute o projeto de forma incremental, por etapas pequenas, simples e encadeada
 
 A cada etapa concluída, atualize obrigatoriamente:
 
-1. O arquivo `ROADMAP.md`.
-2. O arquivo `STATUS.md`.
+1. O arquivo `docs/ROADMAP.md`.
+2. O arquivo `docs/STATUS.md`.
 3. A documentação técnica relacionada à etapa.
 4. O checklist de critérios de aceite.
 5. O histórico de decisões técnicas, quando houver alteração relevante.
@@ -135,17 +135,17 @@ docs/
   painel-operacional.md
   testes.md
 
-ROADMAP.md
-STATUS.md
-DECISOES_TECNICAS.md
-CHANGELOG.md
+docs/ROADMAP.md
+docs/STATUS.md
+docs/DECISOES_TECNICAS.md
+docs/CHANGELOG.md
 ```
 
 ---
 
 # 3. Documentos Obrigatórios
 
-## 3.1 ROADMAP.md
+## 3.1 docs/ROADMAP.md
 
 Deve conter a visão por fases, status e percentual aproximado.
 
@@ -170,7 +170,7 @@ Modelo:
 
 ---
 
-## 3.2 STATUS.md
+## 3.2 docs/STATUS.md
 
 Deve registrar o andamento atual.
 
@@ -207,7 +207,7 @@ YYYY-MM-DD HH:mm
 
 ---
 
-## 3.3 DECISOES_TECNICAS.md
+## 3.3 docs/DECISOES_TECNICAS.md
 
 Registrar decisões importantes.
 
@@ -288,10 +288,10 @@ Criar arquivos iniciais de acompanhamento do projeto.
 #### Escopo
 Criar:
 
-- `ROADMAP.md`
-- `STATUS.md`
-- `DECISOES_TECNICAS.md`
-- `CHANGELOG.md`
+- `docs/ROADMAP.md`
+- `docs/STATUS.md`
+- `docs/DECISOES_TECNICAS.md`
+- `docs/CHANGELOG.md`
 - Pasta `docs/`
 
 #### Critérios de aceite
@@ -301,7 +301,7 @@ Criar:
 - [ ] Decisão técnica inicial registrada.
 
 #### Atualização obrigatória
-Atualizar `STATUS.md` com conclusão da etapa.
+Atualizar `docs/STATUS.md` com conclusão da etapa.
 
 ---
 
@@ -1122,7 +1122,7 @@ Atualizar:
 
 - `docs/regras-negocio.md`
 - `docs/modelo-dados.md`
-- `DECISOES_TECNICAS.md`
+- `docs/DECISOES_TECNICAS.md`
 
 ## Após Fase 2
 Atualizar:
@@ -1175,8 +1175,8 @@ Atualizar:
 Atualizar:
 
 - `docs/testes.md`
-- `STATUS.md`
-- `CHANGELOG.md`
+- `docs/STATUS.md`
+- `docs/CHANGELOG.md`
 
 ---
 
@@ -1243,8 +1243,8 @@ Antes de começar qualquer implementação:
 
 1. Leia este arquivo inteiro.
 2. Crie os documentos obrigatórios.
-3. Monte o `ROADMAP.md` com todas as fases.
-4. Monte o `STATUS.md` com a etapa atual.
+3. Monte o `docs/ROADMAP.md` com todas as fases.
+4. Monte o `docs/STATUS.md` com a etapa atual.
 5. Comece pela Fase 0.
 6. Ao concluir cada etapa, atualize documentação e status.
 7. Faça commits pequenos e descritivos, se houver controle de versão.

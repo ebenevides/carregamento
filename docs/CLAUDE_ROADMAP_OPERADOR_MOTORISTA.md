@@ -11,14 +11,14 @@ Este documento complementa `docs/CLAUDE_ROADMAP_CARREGAMENTO.md` (Fases 0–10, 
 
 ## Numeração continuada
 
-- Fases: continuam a partir da **Fase 11** (Fases 0–10 já concluídas em `ROADMAP.md`).
+- Fases: continuam a partir da **Fase 11** (Fases 0–10 já concluídas em `docs/ROADMAP.md`).
 - Regras de negócio: continuam a partir de **RN-009** (`docs/regras-negocio.md` vai até RN-008).
-- Decisões técnicas: continuam a partir de **DT-009** (`DECISOES_TECNICAS.md` vai até DT-008).
+- Decisões técnicas: continuam a partir de **DT-009** (`docs/DECISOES_TECNICAS.md` vai até DT-008).
 
 ## Regras de desenvolvimento (herdadas de `CLAUDE_ROADMAP_CARREGAMENTO.md`)
 
 - Executar de forma incremental, uma etapa por vez.
-- Ao concluir cada etapa, atualizar `ROADMAP.md`, `STATUS.md`, `docs/regras-negocio.md`, `DECISOES_TECNICAS.md` e `docs/api.md` conforme aplicável.
+- Ao concluir cada etapa, atualizar `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/regras-negocio.md`, `docs/DECISOES_TECNICAS.md` e `docs/api.md` conforme aplicável.
 - Nenhuma regra crítica só no frontend/app — toda validação de transição de status, permissão de perfil e regra de fila vive no backend.
 - Reaproveitar o que já existe: `AlterarStatusOrdemAction`, `RegistrarDivergenciaAction`, `FilaCarregamentoService`, `OrdemStatusAlterado`, `PerfilUsuario`, `StatusOrdem`. Não recriar máquina de estados nem enums já existentes.
 
@@ -306,11 +306,11 @@ Cadastrar User motorista (perfil MOTORISTA, documento = CPF)
 
 | Fase | Atualizar |
 |---|---|
-| 11 | `docs/regras-negocio.md` (schema), `DECISOES_TECNICAS.md` (DT-009), `docs/api.md` |
+| 11 | `docs/regras-negocio.md` (schema), `docs/DECISOES_TECNICAS.md` (DT-009), `docs/api.md` |
 | 12 | `docs/regras-negocio.md` (RN-009, RN-010), `docs/api.md` |
 | 13 | `docs/regras-negocio.md` (RN-011), `docs/api.md`, novo `docs/chat.md` (opcional) |
-| 14 | `DECISOES_TECNICAS.md` (DT-010), `docs/api.md` |
-| 15 | `STATUS.md`, `CHANGELOG.md`, `ROADMAP.md` (marcar Fases 11–15) |
+| 14 | `docs/DECISOES_TECNICAS.md` (DT-010), `docs/api.md` |
+| 15 | `docs/STATUS.md`, `docs/CHANGELOG.md`, `docs/ROADMAP.md` (marcar Fases 11–15) |
 
 ### DT-009 (rascunho)
 **Decisão:** Motorista é `User` cadastrado (`perfil = MOTORISTA`), vinculado à ordem via `motorista_user_id`, resolvido automaticamente por `documento` (CPF). **Motivo:** permitir autenticação Sanctum própria, canal privado individual e histórico por motorista, mantendo compatibilidade com o texto solto vindo de Protheus/Guardian. **Impacto:** `users.documento` novo, `ordens_carregamento.motorista_user_id` novo, resolução automática não bloqueia ordem se motorista não tiver cadastro.
