@@ -55,7 +55,7 @@ class PilhaProdutoController extends Controller
         $pilha = PilhaProduto::create($data);
 
         if (isset($data['ponto_ids'])) {
-            $pilha->pontosCarregamento()->sync($data['ponto_ids']);
+            $pilha->pontosCarregamento()->sync($this->pivotDataPontos($pilha, $data['ponto_ids']));
         }
 
         return back()->with('success', 'Pilha criada.');
@@ -77,7 +77,7 @@ class PilhaProdutoController extends Controller
         $pilhaProduto->update($data);
 
         if (array_key_exists('ponto_ids', $data)) {
-            $pilhaProduto->pontosCarregamento()->sync($data['ponto_ids'] ?? []);
+            $pilhaProduto->pontosCarregamento()->sync($this->pivotDataPontos($pilhaProduto, $data['ponto_ids'] ?? []));
         }
 
         return back()->with('success', 'Pilha atualizada.');
@@ -88,5 +88,14 @@ class PilhaProdutoController extends Controller
         $pilhaProduto->delete();
 
         return back()->with('success', 'Pilha removida.');
+    }
+
+    /** Monta dados de pivot (produto_codigo/produto_descricao herdados da pilha) para sync(). */
+    private function pivotDataPontos(PilhaProduto $pilha, array $pontoIds): array
+    {
+        return collect($pontoIds)->mapWithKeys(fn ($id) => [$id => [
+            'produto_codigo'    => $pilha->produto_codigo,
+            'produto_descricao' => $pilha->produto_descricao,
+        ]])->all();
     }
 }

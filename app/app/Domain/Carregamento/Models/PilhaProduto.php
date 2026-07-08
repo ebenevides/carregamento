@@ -46,7 +46,7 @@ class PilhaProduto extends Model
             'produto_pilha_ponto',
             'pilha_produto_id',
             'ponto_carregamento_id'
-        );
+        )->withPivot('produto_codigo', 'produto_descricao');
     }
 
     public function scopeAtivas($query)
