@@ -77,4 +77,63 @@ class GuardianMockAdapter implements GuardianAdapterInterface
     {
         return isset($this->tickets[$ticket]);
     }
+
+    /**
+     * Gera tickets sintéticos por dia (determinístico por data, sem chamada real ao Guardian)
+     * para permitir testar o relatório por período sem depender do servidor SOAP.
+     */
+    public function consultarTicketsPorPeriodo(\DateTimeInterface $inicio, \DateTimeInterface $fim): array
+    {
+        $placas     = ['ABC1D23', 'XYZ9Z99', 'JJK4L56', 'QWE7R89', 'MNO2P34'];
+        $motoristas = ['João da Silva', 'Maria Souza', 'Carlos Pereira', 'Ana Lima', 'Pedro Rocha'];
+        $unidades   = ['UB-1', 'UB-2'];
+        $atendentes = ['Samira', 'Carlos', 'Fernanda'];
+
+        $tickets = [];
+        $dia = (new \DateTimeImmutable($inicio->format('Y-m-d')))->setTime(0, 0);
+        $ultimoDia = new \DateTimeImmutable($fim->format('Y-m-d'));
+
+        while ($dia <= $ultimoDia) {
+            $seed = (int) $dia->format('Ymd');
+            mt_srand($seed);
+            $qtd = 6 + ($seed % 5);
+
+            for ($i = 0; $i < $qtd; $i++) {
+                $entrada = $dia->setTime(mt_rand(6, 20), mt_rand(0, 59));
+
+                if ($entrada < $inicio || $entrada > $fim) {
+                    continue;
+                }
+
+                $duracaoMin = mt_rand(35, 180);
+                $saida = $entrada->modify("+{$duracaoMin} minutes");
+
+                $tara      = (float) (mt_rand(800, 1500) * 10);
+                $pesoBruto = (float) (mt_rand(3000, 4500) * 10);
+
+                $tickets[] = new TicketGuardianDTO(
+                    ticket:           sprintf('%07d', $seed * 100 + $i),
+                    status:           'ENCERRADO',
+                    placa:            $placas[$i % count($placas)],
+                    motorista:        $motoristas[$i % count($motoristas)],
+                    tara:             $tara,
+                    pesoBruto:        $pesoBruto,
+                    pesoLiquido:      $pesoBruto - $tara,
+                    dataEntrada:      $entrada->format(DATE_ATOM),
+                    dataSaida:        $saida->format(DATE_ATOM),
+                    pesoDoc:          (float) mt_rand(8, 50),
+                    unidade:          $unidades[$i % count($unidades)],
+                    atendente:        $atendentes[$i % count($atendentes)],
+                    pedido:           (string) mt_rand(90000, 99999),
+                    tempoPermanencia: $duracaoMin,
+                );
+            }
+
+            $dia = $dia->modify('+1 day');
+        }
+
+        mt_srand();
+
+        return $tickets;
+    }
 }

@@ -114,24 +114,61 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         }
     }
 
+    public function consultarTicketsPorPeriodo(\DateTimeInterface $inicio, \DateTimeInterface $fim): array
+    {
+        try {
+            $resposta = $this->client->ConsultaTicketsPorPeriodo([
+                'dataInicial' => $inicio->format('Y-m-d\TH:i:s'),
+                'dataFinal'   => $fim->format('Y-m-d\TH:i:s'),
+                'produto'     => self::AUTH_PRODUTO,
+                'codigo'      => self::AUTH_CODIGO,
+            ]);
+
+            if (($resposta->Erro ?? 0) !== 0) {
+                throw new \RuntimeException("Guardian erro {$resposta->Erro}: " . ($resposta->ErroMSG ?? ''));
+            }
+
+            $lista = $resposta->ConsultaTicketsPorPeriodoResult ?? null;
+
+            Log::info('Guardian consultarTicketsPorPeriodo', [
+                'inicio' => $inicio->format('Y-m-d H:i'),
+                'fim'    => $fim->format('Y-m-d H:i'),
+            ]);
+
+            return array_map(
+                fn ($t) => $this->mapearTicket((string) ($t->Codigo ?? ''), $t),
+                $this->todosTickets($lista)
+            );
+        } catch (SoapFault $e) {
+            $this->tratarFalha($e);
+        }
+    }
+
     private function primeiroTicket(mixed $lista): mixed
     {
+        $todos = $this->todosTickets($lista);
+
+        return $todos[0] ?? null;
+    }
+
+    /** Normaliza ArrayOfTicket (objeto com ->Ticket, array direto ou item único) em lista plana. */
+    private function todosTickets(mixed $lista): array
+    {
         if ($lista === null) {
-            return null;
+            return [];
         }
 
-        // ArrayOfTicket pode chegar como objeto com ->Ticket ou como array direto
         if (is_object($lista) && isset($lista->Ticket)) {
             $t = $lista->Ticket;
-            return is_array($t) ? ($t[0] ?? null) : $t;
+            return is_array($t) ? $t : [$t];
         }
 
         if (is_array($lista)) {
-            return $lista[0] ?? null;
+            return $lista;
         }
 
         // objeto único (apenas 1 ticket)
-        return $lista;
+        return [$lista];
     }
 
     private function mapearTicket(string $ticket, mixed $t): TicketGuardianDTO
@@ -174,10 +211,10 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
                 }
             }
 
-            // Motorista vem do pré-cadastro (op tipo 1)
+            // Motorista vem do pré-cadastro (op tipo 1); Motorista é objeto MotoristaIntegracao (campo Nome)
             if ($tipo === 1 && $motorista === null) {
-                $nome = isset($op->MotoristaDescricao) && (string) $op->MotoristaDescricao !== ''
-                    ? (string) $op->MotoristaDescricao
+                $nome = isset($op->Motorista->Nome) && (string) $op->Motorista->Nome !== ''
+                    ? trim((string) $op->Motorista->Nome)
                     : null;
                 $motorista = $nome;
             }
@@ -193,17 +230,65 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
             $dataEntrada = (string) $t->DataCriacao;
         }
 
+        // DataPesagem = horário da última pesagem registrada; usado como proxy de saída
+        // do pátio (Guardian não expõe um campo explícito de "data de saída").
+        $dataSaida = null;
+        if (isset($t->DataPesagem) && (string) $t->DataPesagem !== '') {
+            $dataSaida = (string) $t->DataPesagem;
+        }
+
+        [$pesoDoc, $unidade, $atendente, $pedido] = $this->extrairCamposAdicionais($t);
+
+        $tempoPermanencia = isset($t->TempoPermanencia) && $t->TempoPermanencia !== null
+            ? (int) $t->TempoPermanencia
+            : null;
+
         return new TicketGuardianDTO(
-            ticket:      $ticket,
-            status:      $estado,
-            placa:       $placa,
-            motorista:   $motorista,
-            tara:        $tara,
-            pesoBruto:   $pesoBruto,
-            pesoLiquido: $pesoLiq,
-            dataEntrada: $dataEntrada,
-            dataSaida:   null,
+            ticket:           $ticket,
+            status:           $estado,
+            placa:            $placa,
+            motorista:        $motorista,
+            tara:             $tara,
+            pesoBruto:        $pesoBruto,
+            pesoLiquido:      $pesoLiq,
+            dataEntrada:      $dataEntrada,
+            dataSaida:        $dataSaida,
+            pesoDoc:          $pesoDoc,
+            unidade:          $unidade,
+            atendente:        $atendente,
+            pedido:           $pedido,
+            tempoPermanencia: $tempoPermanencia,
         );
+    }
+
+    /**
+     * Campos adicionais configuráveis no Guardian (Ticket.CamposAdicionais, Numero 1-4).
+     * Confirmado em dados reais de produção: 1=peso doc, 2=unidade/praça, 3=atendente, 4=pedido/nota.
+     * Tickets de portaria (placa ENT0000/SAI0000) só têm 2 slots (flags) — ficam null aqui.
+     *
+     * @return array{0: ?float, 1: ?string, 2: ?string, 3: ?string}
+     */
+    private function extrairCamposAdicionais(mixed $t): array
+    {
+        $pesoDoc = $unidade = $atendente = $pedido = null;
+
+        $campos = $t->CamposAdicionais->CampoAdicionalTicket ?? null;
+        if ($campos !== null) {
+            foreach (is_array($campos) ? $campos : [$campos] as $campo) {
+                $numero = (int) ($campo->Numero ?? 0);
+                $valor  = isset($campo->Valor) ? trim((string) $campo->Valor) : null;
+
+                match ($numero) {
+                    1       => $pesoDoc = ($valor !== null && is_numeric($valor)) ? (float) $valor : null,
+                    2       => $unidade = $valor ?: null,
+                    3       => $atendente = $valor ?: null,
+                    4       => $pedido = $valor ?: null,
+                    default => null,
+                };
+            }
+        }
+
+        return [$pesoDoc, $unidade, $atendente, $pedido];
     }
 
     private function tratarFalha(SoapFault $e): never

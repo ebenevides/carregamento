@@ -6,8 +6,10 @@ use App\Domain\Carregamento\Enums\StatusOrdem;
 use App\Domain\Carregamento\Models\OrdemCarregamento;
 use App\Domain\Integrations\Guardian\Services\GuardianService;
 use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,5 +102,75 @@ class IntegracaoGuardianController extends Controller
         $pesagens = $this->guardian->sincronizarTodasPesagens();
 
         return back()->with('success', "Sincronização concluída: {$taras} tara(s), {$pesagens} pesagem(ns).");
+    }
+
+    public function relatorioPeriodo(Request $request): Response
+    {
+        $dados = $this->buscarRelatorio($request);
+
+        return Inertia::render('Integracoes/Guardian/Relatorio', $dados);
+    }
+
+    public function relatorioPeriodoPdf(Request $request): \Symfony\Component\HttpFoundation\Response
+    {
+        $dados = $this->buscarRelatorio($request);
+
+        $pdf = Pdf::loadView('guardian.relatorio-pdf', $dados)->setPaper('a4', 'landscape');
+
+        $nome = "relatorio-guardian_{$dados['filtros']['data_de']}_a_{$dados['filtros']['data_ate']}.pdf";
+
+        return $pdf->download($nome);
+    }
+
+    /** Busca dados do relatório por período, compartilhado entre view web e PDF. */
+    private function buscarRelatorio(Request $request): array
+    {
+        $hoje = now()->toDateString();
+
+        $data = $request->validate([
+            'data_de'  => ['nullable', 'date'],
+            'data_ate' => ['nullable', 'date'],
+        ]);
+
+        $dataDe  = $data['data_de'] ?? $hoje;
+        $dataAte = $data['data_ate'] ?? $hoje;
+
+        $inicio = Carbon::parse($dataDe)->startOfDay();
+        $fim    = Carbon::parse($dataAte)->endOfDay();
+
+        $erro = null;
+        $tickets = [];
+        $metricas = null;
+
+        try {
+            $resultado = $this->guardian->relatorioPorPeriodo($inicio, $fim);
+            $metricas  = $resultado['metricas'];
+            $tickets   = array_map(fn ($dto) => [
+                'ticket'           => $dto->ticket,
+                'status'           => $dto->status,
+                'placa'            => $dto->placa,
+                'motorista'        => $dto->motorista,
+                'tara_kg'          => $dto->taraKg(),
+                'peso_bruto_kg'    => $dto->pesoBrutoKg(),
+                'peso_liquido_kg'  => $dto->pesoLiquidoKg(),
+                'data_entrada'     => $dto->dataEntrada,
+                'data_saida'       => $dto->dataSaida,
+                'tempo_patio_min'  => $dto->tempoPatioMinutos(),
+                'peso_doc_kg'      => $dto->pesoDoc,
+                'unidade'          => $dto->unidade,
+                'atendente'        => $dto->atendente,
+                'pedido'           => $dto->pedido,
+            ], $resultado['tickets']);
+        } catch (\Throwable $e) {
+            $erro = $e->getMessage();
+        }
+
+        return [
+            'tickets'    => $tickets,
+            'metricas'   => $metricas,
+            'erro'       => $erro,
+            'filtros'    => ['data_de' => $dataDe, 'data_ate' => $dataAte],
+            'mock_ativo' => config('integrations.guardian.mock'),
+        ];
     }
 }

@@ -150,4 +150,54 @@ class GuardianService
 
         return $ordens->filter(fn ($o) => $this->sincronizarPesagemFinal($o))->count();
     }
+
+    /**
+     * Relatório de tickets do Guardian num período: lista + métricas de volume,
+     * tempo médio de pátio e throughput por hora.
+     *
+     * @return array{tickets: TicketGuardianDTO[], metricas: array}
+     */
+    // Placas fictícias usadas pelo Guardian p/ registrar entrada/saída de
+    // funcionário (não são veículos de carregamento) — excluir do relatório.
+    private const PLACAS_FUNCIONARIO = ['ENT0000', 'SAI0000'];
+
+    public function relatorioPorPeriodo(\DateTimeInterface $inicio, \DateTimeInterface $fim): array
+    {
+        $tickets = array_values(array_filter(
+            $this->adapter->consultarTicketsPorPeriodo($inicio, $fim),
+            fn ($t) => !in_array($t->placa, self::PLACAS_FUNCIONARIO, true)
+        ));
+
+        return [
+            'tickets'  => $tickets,
+            'metricas' => $this->calcularMetricas($tickets),
+        ];
+    }
+
+    /** @param TicketGuardianDTO[] $tickets */
+    private function calcularMetricas(array $tickets): array
+    {
+        $total = count($tickets);
+
+        $pesosLiquidos = array_filter(array_map(fn ($t) => $t->pesoLiquidoKg(), $tickets), fn ($p) => $p !== null);
+        $temposPatio   = array_filter(array_map(fn ($t) => $t->tempoPatioMinutos(), $tickets), fn ($m) => $m !== null);
+
+        $porHora = [];
+        foreach ($tickets as $t) {
+            if ($t->dataEntrada === null) {
+                continue;
+            }
+            $hora = date('H:00', strtotime($t->dataEntrada));
+            $porHora[$hora] = ($porHora[$hora] ?? 0) + 1;
+        }
+        ksort($porHora);
+
+        return [
+            'total_tickets'         => $total,
+            'total_com_pesagem'     => count($pesosLiquidos),
+            'peso_liquido_total_kg' => array_sum($pesosLiquidos),
+            'tempo_medio_patio_min' => count($temposPatio) > 0 ? round(array_sum($temposPatio) / count($temposPatio)) : null,
+            'throughput_por_hora'   => $porHora,
+        ];
+    }
 }

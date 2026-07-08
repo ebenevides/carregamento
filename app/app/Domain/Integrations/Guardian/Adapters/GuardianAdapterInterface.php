@@ -17,4 +17,11 @@ interface GuardianAdapterInterface
 
     /** Verifica se ticket existe */
     public function ticketExiste(string $ticket): bool;
+
+    /**
+     * Lista tickets criados/pesados no período (relatório).
+     *
+     * @return TicketGuardianDTO[]
+     */
+    public function consultarTicketsPorPeriodo(\DateTimeInterface $inicio, \DateTimeInterface $fim): array;
 }

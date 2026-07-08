@@ -3,10 +3,16 @@
         <div class="space-y-5 max-w-5xl mx-auto">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-bold text-gray-800">Integração Guardian</h1>
-                <button @click="syncTodas" :disabled="sincronizando"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
-                    {{ sincronizando ? 'Sincronizando...' : '↻ Sincronizar tudo' }}
-                </button>
+                <div class="flex gap-2">
+                    <Link :href="route('integracoes.guardian.relatorio')"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                        📊 Relatório por período
+                    </Link>
+                    <button @click="syncTodas" :disabled="sincronizando"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
+                        {{ sincronizando ? 'Sincronizando...' : '↻ Sincronizar tudo' }}
+                    </button>
+                </div>
             </div>
 
             <!-- Status -->
@@ -60,17 +66,35 @@
                         class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                         ✗ {{ resultadoConsulta.erro }}
                     </div>
-                    <div v-else class="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <Campo label="Ticket"      :valor="resultadoConsulta.ticket" mono />
-                            <Campo label="Status"      :valor="resultadoConsulta.status" />
-                            <Campo label="Placa"       :valor="resultadoConsulta.placa" mono />
-                            <Campo label="Motorista"   :valor="resultadoConsulta.motorista" />
-                            <CampoNum label="Tara (kg)"       :valor="resultadoConsulta.tara_kg" />
-                            <CampoNum label="Peso bruto (kg)" :valor="resultadoConsulta.peso_bruto_kg" />
-                            <CampoNum label="Peso líq. (kg)"  :valor="resultadoConsulta.peso_liquido_kg" />
-                            <Campo label="Entrada" :valor="resultadoConsulta.data_entrada" />
-                        </div>
+                    <div v-else class="border border-green-200 rounded-lg overflow-hidden">
+                        <table class="min-w-full text-sm">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="bg-green-50">
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500 w-40">Ticket</td>
+                                    <td class="px-4 py-2 font-mono font-bold text-gray-800">{{ resultadoConsulta.ticket }}</td>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500 w-40">Status</td>
+                                    <td class="px-4 py-2 font-medium text-gray-800">{{ resultadoConsulta.status }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Placa</td>
+                                    <td class="px-4 py-2 font-mono font-bold text-gray-800">{{ resultadoConsulta.placa ?? '—' }}</td>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Motorista</td>
+                                    <td class="px-4 py-2 text-gray-800">{{ resultadoConsulta.motorista ?? '—' }}</td>
+                                </tr>
+                                <tr class="bg-gray-50">
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Tara</td>
+                                    <td class="px-4 py-2 font-mono tabular-nums text-gray-800">{{ fmtPeso(resultadoConsulta.tara_kg) }}</td>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Peso bruto</td>
+                                    <td class="px-4 py-2 font-mono tabular-nums text-gray-800">{{ fmtPeso(resultadoConsulta.peso_bruto_kg) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Peso líquido</td>
+                                    <td class="px-4 py-2 font-mono tabular-nums font-bold text-green-700">{{ fmtPeso(resultadoConsulta.peso_liquido_kg) }}</td>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Entrada</td>
+                                    <td class="px-4 py-2 text-gray-800">{{ fmtDate(resultadoConsulta.data_entrada) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -169,6 +193,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
+import axios from 'axios';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -207,18 +232,15 @@ async function consultarTicket() {
     resultadoConsulta.value = null;
 
     try {
-        const res = await fetch(route('integracoes.guardian.consultar-ticket'), {
-            method:  'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept':       'application/json',
-            },
-            body: JSON.stringify({ ticket: ticketConsulta.value.trim() }),
+        const res = await axios.post(route('integracoes.guardian.consultar-ticket'), {
+            ticket: ticketConsulta.value.trim(),
         });
-        resultadoConsulta.value = await res.json();
+        resultadoConsulta.value = res.data;
     } catch (e) {
-        resultadoConsulta.value = { ok: false, erro: 'Erro de conexão.' };
+        resultadoConsulta.value = {
+            ok: false,
+            erro: e.response?.data?.erro ?? e.response?.data?.message ?? 'Erro de conexão.',
+        };
     } finally {
         consultando.value = false;
     }
@@ -248,5 +270,10 @@ function syncTodas() {
 function fmtDate(iso) {
     if (!iso) return '—';
     return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function fmtPeso(val) {
+    if (val == null) return '—';
+    return Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 }) + ' kg';
 }
 </script>

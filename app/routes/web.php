@@ -65,6 +65,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/mapeamento/{mapeamento}', [ProdutoPilhaPontoController::class, 'destroy'])->name('mapeamento.destroy');
 
     Route::get('/integracoes/guardian', [IntegracaoGuardianController::class, 'index'])->name('integracoes.guardian');
+    Route::get('/integracoes/guardian/relatorio', [IntegracaoGuardianController::class, 'relatorioPeriodo'])->name('integracoes.guardian.relatorio');
+    Route::get('/integracoes/guardian/relatorio/pdf', [IntegracaoGuardianController::class, 'relatorioPeriodoPdf'])->name('integracoes.guardian.relatorio.pdf');
     Route::post('/integracoes/guardian/consultar-ticket', [IntegracaoGuardianController::class, 'consultarTicket'])->name('integracoes.guardian.consultar-ticket');
     Route::post('/integracoes/guardian/sync-todas', [IntegracaoGuardianController::class, 'sincronizarTodas'])->name('integracoes.guardian.sync-todas');
     Route::post('/integracoes/guardian/{ordem}/sync-tara', [IntegracaoGuardianController::class, 'sincronizarTaraOrdem'])->name('integracoes.guardian.sync-tara');
