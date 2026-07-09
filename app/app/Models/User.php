@@ -23,6 +23,7 @@ class User extends Authenticatable
         'perfil',
         'ponto_carregamento_id',
         'ativo',
+        'documento',
     ];
 
     protected $hidden = [

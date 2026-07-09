@@ -4,6 +4,7 @@ namespace App\Domain\Integrations\Guardian\Services;
 
 use App\Domain\Carregamento\Actions\AlterarStatusOrdemAction;
 use App\Domain\Carregamento\Actions\RegistrarPesagemFinalAction;
+use App\Domain\Carregamento\Actions\ResolverMotoristaAction;
 use App\Domain\Carregamento\DTOs\AlterarStatusDTO;
 use App\Domain\Carregamento\Enums\OrigemEvento;
 use App\Domain\Carregamento\Enums\StatusOrdem;
@@ -19,6 +20,7 @@ class GuardianService
         private readonly GuardianAdapterInterface $adapter,
         private readonly AlterarStatusOrdemAction $alterarStatus,
         private readonly RegistrarPesagemFinalAction $registrarPesagem,
+        private readonly ResolverMotoristaAction $resolverMotorista,
     ) {}
 
     public function consultarTicket(string $ticket): TicketGuardianDTO
@@ -62,6 +64,9 @@ class GuardianService
             }
 
             $ordem->update(['tara' => $tara]);
+
+            // Tenta vincular motorista cadastrado (motorista_documento pode ter chegado nesta sync)
+            $this->resolverMotorista->execute($ordem->fresh());
 
             if ($ordem->status === StatusOrdem::CRIADO) {
                 $this->alterarStatus->execute($ordem, new AlterarStatusDTO(

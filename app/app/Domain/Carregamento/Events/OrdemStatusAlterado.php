@@ -5,6 +5,7 @@ namespace App\Domain\Carregamento\Events;
 use App\Domain\Carregamento\Models\EventoOrdemCarregamento;
 use App\Domain\Carregamento\Models\OrdemCarregamento;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -21,10 +22,17 @@ class OrdemStatusAlterado implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        return [
+        $canais = [
             new Channel('ordens'),
             new Channel("ponto.{$this->ordem->ponto_carregamento_id}"),
         ];
+
+        // Notifica motorista individualmente via canal privado
+        if ($this->ordem->motorista_user_id !== null) {
+            $canais[] = new PrivateChannel("App.Models.User.{$this->ordem->motorista_user_id}");
+        }
+
+        return $canais;
     }
 
     public function broadcastAs(): string

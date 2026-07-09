@@ -133,3 +133,39 @@ PostgreSQL nativo. Eventos consultáveis por conteúdo do payload via `->` e `@>
 
 ### Data
 2026-06-26
+
+---
+
+## DT-009 — Motorista como User do sistema
+
+### Decisão
+Motorista é `User` cadastrado (`perfil = MOTORISTA`), vinculado à ordem via `motorista_user_id`, resolvido automaticamente por `documento` (CPF).
+
+### Motivo
+Permitir autenticação Sanctum própria, canal privado individual e histórico por motorista, mantendo compatibilidade com o texto solto vindo de Protheus/Guardian.
+
+### Impacto
+- `users.documento` (nullable, unique quando preenchido)
+- `ordens_carregamento.motorista_user_id` (FK → users, nullable)
+- Resolução automática não bloqueia ordem se motorista não tiver cadastro
+
+### Data
+2026-07-09
+
+---
+
+## DT-010 — Canais privados Reverb via Sanctum
+
+### Decisão
+Canais privados Reverb (`PrivateChannel`) autenticados via Sanctum (`auth:sanctum`) para chat (`ordem.{id}.chat`) e notificação individual ao motorista (`App.Models.User.{id}`).
+
+### Motivo
+Canais públicos não suportam autorização por usuário, necessária para chat 1:1 e notificação individual do motorista.
+
+### Impacto
+- `Broadcast::routes(['middleware' => ['api', 'auth:sanctum']])` substitui o default web
+- Canais públicos existentes (`ordens`, `ponto.{id}`) continuam como estão
+- App Flutter precisará de cliente Pusher/Echo compatível para assinar canais privados
+
+### Data
+2026-07-09

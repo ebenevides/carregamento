@@ -2,7 +2,9 @@
 
 namespace App\Domain\Carregamento\Models;
 
+use App\Domain\Carregamento\Enums\PerfilUsuario;
 use App\Domain\Carregamento\Enums\StatusOrdem;
+use App\Models\User;
 use Database\Factories\OrdemCarregamentoFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User;
 
 class OrdemCarregamento extends Model
 {
@@ -54,6 +55,7 @@ class OrdemCarregamento extends Model
         'ponto_carregamento_id',
         'equipamento_id',
         'operador_id',
+        'motorista_user_id',
         'status',
         'iniciado_em',
         'concluido_em',
@@ -92,6 +94,11 @@ class OrdemCarregamento extends Model
         return $this->belongsTo(User::class, 'operador_id');
     }
 
+    public function motorista(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'motorista_user_id');
+    }
+
     public function eventos(): HasMany
     {
         return $this->hasMany(EventoOrdemCarregamento::class, 'ordem_carregamento_id')->orderBy('ocorrido_em');
@@ -112,6 +119,12 @@ class OrdemCarregamento extends Model
         return $this->divergenciasAbertas()->exists();
     }
 
+    public function mensagensChat(): HasMany
+    {
+        return $this->hasMany(\App\Domain\Chat\Models\MensagemChat::class, 'ordem_carregamento_id')
+            ->orderBy('created_at');
+    }
+
     public function scopeNaFila($query)
     {
         return $query->whereIn('status', [
@@ -123,6 +136,25 @@ class OrdemCarregamento extends Model
     public function scopePorPonto($query, int $pontoId)
     {
         return $query->where('ponto_carregamento_id', $pontoId);
+    }
+
+    /**
+     * Verifica se um User pode acessar dados/mensagens desta ordem.
+     * Motorista vinculado ou operador do mesmo ponto.
+     */
+    public function usuarioPodeAcessar(User $user): bool
+    {
+        // Motorista vinculado a esta ordem
+        if ($this->motorista_user_id !== null && (int) $user->id === (int) $this->motorista_user_id) {
+            return true;
+        }
+
+        // Operador/expedição/admin do mesmo ponto
+        if ($user->perfil instanceof PerfilUsuario && $user->perfil->podeIniciarCarregamento()) {
+            return (int) $user->ponto_carregamento_id === (int) $this->ponto_carregamento_id;
+        }
+
+        return false;
     }
 
     public function pesoLiquidoCalculado(): ?float

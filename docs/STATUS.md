@@ -1,14 +1,20 @@
 # STATUS — Projeto Carregamento
 
 ## Status atual
-Fases 0–10 concluídas. Fase 11 (App Operador + Motorista + Chat) planejada em
-`docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md` / `docs/PLANO_APP_OPERADOR_MOTORISTA.md`, ainda não
-iniciada (Etapa 11.1 — migration `documento`/`motorista_user_id` — é o próximo passo real).
+Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes passando.
+
+**Resumo do entregue (Fases 11–15):**
+- Motorista como User do sistema (documento, motorista_user_id, resolução automática)
+- Endpoint minha-ordem para motorista
+- Ação Rejeitar do operador (DIVERGENCIA, nunca CANCELADO)
+- RN-010: ações de fila restritas ao ponto do operador
+- Chat por ordem (model, endpoints, evento broadcast)
+- Broadcast privado via Reverb/Sanctum (Broadcast::routes + channels)
+- Notificação individual ao motorista via PrivateChannel
+- 12 novos testes de feature (83 total) + roteiro de homologação
 
 ## Última etapa concluída
-Hardening da integração Guardian pós-Fase 8: `GuardianSoapAdapter` migrado para os métodos reais do
-WSDL (`ExportaTicketParametro`), extração correta de tara/peso bruto, e nova tela de relatório de
-tickets por período (web + export PDF via dompdf), com métricas de volume/tempo de pátio/throughput.
+**Etapa 15.1 e 15.2** — 7 novos testes (ResolverMotoristaAction, RN-010 concluir/liberar), RN-010 implementado em `concluir`/`liberarParaFila`, roteiro de homologação em `docs/homologacao-ponta-a-ponta.md`. Total: **83 testes, 158 assertions.**
 
 ## Próximas etapas
 - Fase 11 / Etapa 11.1: migration `documento` em `users` + `motorista_user_id` em
@@ -71,8 +77,7 @@ tickets por período (web + export PDF via dompdf), com métricas de volume/temp
 ## Pendências críticas para produção
 - [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
 - [x] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
-- [ ] 14 testes falhando com `419` (CSRF/sessão) em `ProfileTest`/`Auth*Test` — investigar antes de
-      confiar na suíte (`docker exec carregamento-app-1 php artisan test`)
+- [x] ~~14 testes falhando com `419` (CSRF/sessão)~~ — causa real: Vite manifest ausente; `npm run build` nunca rodado. Fix: Dockerfile reordenado (composer-builder antes de node-builder) + `npm run build` executado. **60/60 passando.**
 - [ ] Configurar `PROTHEUS_BASE_URL` + credenciais
 - [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
 

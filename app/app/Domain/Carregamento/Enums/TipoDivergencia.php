@@ -13,6 +13,7 @@ enum TipoDivergencia: string
     case PESO_FORA_TOLERANCIA      = 'PESO_FORA_TOLERANCIA';
     case PILHA_SEM_PRODUTO         = 'PILHA_SEM_PRODUTO';
     case PONTO_INDISPONIVEL        = 'PONTO_INDISPONIVEL';
+    case REJEITADO_PELO_OPERADOR  = 'REJEITADO_PELO_OPERADOR';
     case PEDIDO_INVALIDO           = 'PEDIDO_INVALIDO';
     case OUTRO                     = 'OUTRO';
 
@@ -28,6 +29,7 @@ enum TipoDivergencia: string
             self::PESO_FORA_TOLERANCIA  => 'Peso fora da tolerância',
             self::PILHA_SEM_PRODUTO     => 'Pilha sem produto configurado',
             self::PONTO_INDISPONIVEL    => 'Ponto de carregamento indisponível',
+            self::REJEITADO_PELO_OPERADOR => 'Rejeitado pelo operador',
             self::PEDIDO_INVALIDO       => 'Pedido inválido',
             self::OUTRO                 => 'Outro',
         };

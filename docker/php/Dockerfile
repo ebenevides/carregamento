@@ -1,15 +1,4 @@
-# ── Stage 1: build frontend assets ──────────────────────────────────────────
-FROM node:22-alpine AS node-builder
-
-WORKDIR /app
-
-COPY app/package*.json ./
-RUN npm ci
-
-COPY app/ .
-RUN npm run build
-
-# ── Stage 2: install PHP dependencies ────────────────────────────────────────
+# ── Stage 1: install PHP dependencies ────────────────────────────────────────
 FROM composer:2 AS composer-builder
 
 WORKDIR /app
@@ -25,6 +14,19 @@ RUN composer install \
 
 COPY app/ .
 RUN composer dump-autoload --optimize
+
+# ── Stage 2: build frontend assets (runs after composer so vendor/ziggy exists) ─
+FROM node:22-alpine AS node-builder
+
+WORKDIR /app
+
+COPY --from=composer-builder /app/vendor ./vendor
+
+COPY app/package*.json ./
+RUN npm ci
+
+COPY app/ .
+RUN npm run build
 
 # ── Stage 3: production PHP-FPM ──────────────────────────────────────────────
 FROM php:8.2-fpm-alpine

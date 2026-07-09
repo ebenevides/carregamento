@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\V1\DivergenciaController;
 use App\Http\Controllers\Api\V1\FilaCarregamentoController;
+use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\IntegracaoController;
+use App\Http\Controllers\Api\V1\MotoristaController;
 use App\Http\Controllers\Api\V1\OrdemCarregamentoController;
 use App\Http\Controllers\Api\V1\PilhaProdutoController;
 use App\Http\Controllers\Api\V1\PontoCarregamentoController;
@@ -66,6 +68,7 @@ Route::prefix('v1')->group(function () {
             ->parameters(['ordens-carregamento' => 'ordemCarregamento']);
         Route::post('ordens-carregamento/{ordemCarregamento}/iniciar', [OrdemCarregamentoController::class, 'iniciar']);
         Route::post('ordens-carregamento/{ordemCarregamento}/concluir', [OrdemCarregamentoController::class, 'concluir']);
+        Route::post('ordens-carregamento/{ordemCarregamento}/rejeitar', [OrdemCarregamentoController::class, 'rejeitar']);
         Route::post('ordens-carregamento/{ordemCarregamento}/divergencias', [OrdemCarregamentoController::class, 'registrarDivergencia']);
         Route::post('ordens-carregamento/{ordemCarregamento}/pesagem-final', [OrdemCarregamentoController::class, 'pesagemFinal']);
         Route::post('ordens-carregamento/{ordemCarregamento}/liberar-faturamento', [OrdemCarregamentoController::class, 'liberarFaturamento']);
@@ -83,5 +86,12 @@ Route::prefix('v1')->group(function () {
         Route::get('operador/minha-fila', [FilaCarregamentoController::class, 'minhaFila']);
         Route::post('fila-carregamento/{ordemCarregamento}/liberar', [FilaCarregamentoController::class, 'liberarParaFila']);
         Route::get('fila-carregamento/{ordemCarregamento}/validar', [FilaCarregamentoController::class, 'validar']);
+
+        // Chat da ordem
+        Route::get('ordens-carregamento/{ordemCarregamento}/mensagens', [ChatController::class, 'index']);
+        Route::post('ordens-carregamento/{ordemCarregamento}/mensagens', [ChatController::class, 'store']);
+
+        // Motorista
+        Route::get('motorista/minha-ordem', [MotoristaController::class, 'minhaOrdem']);
     });
 });

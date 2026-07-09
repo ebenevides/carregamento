@@ -18,6 +18,7 @@ class CriarOrdemAction
         private readonly ResolverDestinoProdutoService $resolverDestino,
         private readonly AlterarStatusOrdemAction $alterarStatus,
         private readonly RegistrarDivergenciaAction $registrarDivergencia,
+        private readonly ResolverMotoristaAction $resolverMotorista,
     ) {}
 
     public function execute(CriarOrdemDTO $dto, OrigemEvento $origem = OrigemEvento::API): OrdemCarregamento
@@ -63,6 +64,9 @@ class CriarOrdemAction
                 'payload'               => ['produto_codigo' => $dto->produtoCodigo],
                 'ocorrido_em'           => now(),
             ]);
+
+            // Vincula motorista cadastrado, se documento bater
+            $this->resolverMotorista->execute($ordem);
 
             if (!$destino->resolvido) {
                 $this->registrarDivergencia->execute($ordem, $destino->tipoDivergencia, $origem,

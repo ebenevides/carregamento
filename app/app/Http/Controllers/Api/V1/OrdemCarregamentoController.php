@@ -16,6 +16,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrdemCarregamento\IniciarCarregamentoRequest;
 use App\Http\Requests\OrdemCarregamento\PesagemFinalRequest;
 use App\Http\Requests\OrdemCarregamento\RegistrarDivergenciaRequest;
+use App\Http\Requests\OrdemCarregamento\RejeitarOrdemRequest;
 use App\Http\Requests\OrdemCarregamento\StoreOrdemCarregamentoRequest;
 use App\Http\Resources\OrdemCarregamentoResource;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -67,8 +68,18 @@ class OrdemCarregamentoController extends Controller
         return new OrdemCarregamentoResource($ordem);
     }
 
-    public function concluir(OrdemCarregamento $ordemCarregamento, ConcluirCarregamentoAction $action): OrdemCarregamentoResource
+    public function concluir(OrdemCarregamento $ordemCarregamento, ConcluirCarregamentoAction $action): OrdemCarregamentoResource|\Illuminate\Http\JsonResponse
     {
+        $user = request()->user();
+
+        if (!$user->perfil->podeIniciarCarregamento()) {
+            return response()->json(['message' => 'Ação não permitida para este perfil.'], 403);
+        }
+
+        if ((int) $user->ponto_carregamento_id !== (int) $ordemCarregamento->ponto_carregamento_id) {
+            return response()->json(['message' => 'Ordem não pertence ao seu ponto de carregamento.'], 403);
+        }
+
         $ordem = $action->execute(
             ordem: $ordemCarregamento,
             operadorId: request()->integer('operador_id') ?: null,
@@ -77,6 +88,45 @@ class OrdemCarregamentoController extends Controller
         );
 
         return new OrdemCarregamentoResource($ordem);
+    }
+
+    /**
+     * Rejeitar caminhão — gera DIVERGENCIA (nunca CANCELADO).
+     * Apenas usuários do mesmo ponto com permissão de iniciar carregamento.
+     */
+    public function rejeitar(
+        RejeitarOrdemRequest $request,
+        OrdemCarregamento $ordemCarregamento,
+        RegistrarDivergenciaAction $action,
+    ): \Illuminate\Http\JsonResponse {
+        $user = $request->user();
+
+        // Autorização: perfil e mesmo ponto
+        if (!$user->perfil->podeIniciarCarregamento()) {
+            return response()->json(['message' => 'Ação não permitida para este perfil.'], 403);
+        }
+
+        if ($user->ponto_carregamento_id !== $ordemCarregamento->ponto_carregamento_id) {
+            return response()->json(['message' => 'Ordem não pertence ao seu ponto de carregamento.'], 403);
+        }
+
+        // Ordem precisa poder transicionar para DIVERGENCIA
+        if (!$ordemCarregamento->status->podeTransicionarPara(\App\Domain\Carregamento\Enums\StatusOrdem::DIVERGENCIA)) {
+            return response()->json([
+                'message' => 'Ordem não pode ser rejeitada no status atual.',
+            ], 422);
+        }
+
+        $divergencia = $action->execute(
+            ordem: $ordemCarregamento,
+            tipo: TipoDivergencia::REJEITADO_PELO_OPERADOR,
+            origem: OrigemEvento::APP_OPERADOR,
+            descricao: $request->input('descricao'),
+            usuarioId: $user->id,
+            usuarioNome: $user->name,
+        );
+
+        return response()->json($divergencia, 201);
     }
 
     public function registrarDivergencia(RegistrarDivergenciaRequest $request, OrdemCarregamento $ordemCarregamento, RegistrarDivergenciaAction $action)

@@ -23,7 +23,12 @@
 | ADMINISTRADOR | ✓ | ✓ | ✓ | ✓ |
 | SUPERVISOR | ✓ | ✓ | ✓ | ✓ |
 | OPERADOR | ✓ | ✓ | ✗ | ✗ |
+| MOTORISTA | ✗ | ✗ | ✗ | ✗ |
 | VISUALIZADOR | ✗ | ✗ | ✗ | ✗ |
+
+### Schema de dados relevante
+- `users.documento` (string, nullable, unique): CPF do usuário, usado para casar motorista com ordem.
+- `ordens_carregamento.motorista_user_id` (bigint, nullable, FK → users): vínculo opcional com o User motorista.
 
 ## Regras de negócio obrigatórias
 

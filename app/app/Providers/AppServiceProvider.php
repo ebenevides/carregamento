@@ -8,6 +8,7 @@ use App\Domain\Integrations\Guardian\Adapters\GuardianSoapAdapter;
 use App\Domain\Integrations\Protheus\Adapters\ProtheusAdapterInterface;
 use App\Domain\Integrations\Protheus\Adapters\ProtheusHttpAdapter;
 use App\Domain\Integrations\Protheus\Adapters\ProthousMockAdapter;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,5 +34,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Broadcast routes para autenticação Sanctum (PrivateChannel)
+        Broadcast::routes(['middleware' => ['api', 'auth:sanctum']]);
+
+        // Carrega definições de canais (PrivateChannel authorization)
+        if (file_exists($channels = base_path('routes/channels.php'))) {
+            require $channels;
+        }
     }
 }

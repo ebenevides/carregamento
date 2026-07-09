@@ -49,8 +49,18 @@ class FilaCarregamentoController extends Controller
         return OrdemCarregamentoResource::collection($fila);
     }
 
-    public function liberarParaFila(OrdemCarregamento $ordemCarregamento, EntrarNaFilaAction $action): OrdemCarregamentoResource
+    public function liberarParaFila(OrdemCarregamento $ordemCarregamento, EntrarNaFilaAction $action): OrdemCarregamentoResource|\Illuminate\Http\JsonResponse
     {
+        $user = request()->user();
+
+        if (!$user->perfil->podeIniciarCarregamento()) {
+            return response()->json(['message' => 'Ação não permitida para este perfil.'], 403);
+        }
+
+        if ((int) $user->ponto_carregamento_id !== (int) $ordemCarregamento->ponto_carregamento_id) {
+            return response()->json(['message' => 'Ordem não pertence ao seu ponto de carregamento.'], 403);
+        }
+
         $ordem = $action->execute($ordemCarregamento);
 
         return new OrdemCarregamentoResource($ordem);
