@@ -1,0 +1,541 @@
+{
+	"info": {
+		"_postman_id": "carregamento-api",
+		"name": "Carregamento API",
+		"description": "Coleção para testar a API do Sistema de Carregamento.\n\nBase URL: http://localhost/api/v1\n\n## Usuários de teste\n- admin@carregamento.local / password (ADMIN)\n- expedicao@carregamento.local / password (EXPEDICAO)\n- operador@carregamento.local / password (OPERADOR)\n- motorista@carregamento.local / password (MOTORISTA)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/api/v1"
+		},
+		{
+			"key": "ordem_id",
+			"value": ""
+		},
+		{
+			"key": "divergencia_id",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"pm.collectionVariables.set('token', json.token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"operador@carregamento.local\",\n    \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login (Motorista)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"pm.collectionVariables.set('token_motorista', json.token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"motorista@carregamento.local\",\n    \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Me (usuário logado)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/me",
+							"host": ["{{base_url}}"],
+							"path": ["me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Ordens de Carregamento",
+			"item": [
+				{
+					"name": "Listar ordens",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento?data_inicio=2026-07-01&data_fim=2026-07-31",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento"],
+							"query": [
+								{ "key": "data_inicio", "value": "2026-07-01" },
+								{ "key": "data_fim", "value": "2026-07-31" },
+								{ "key": "status", "value": "", "disabled": true },
+								{ "key": "ticket", "value": "", "disabled": true },
+								{ "key": "placa", "value": "", "disabled": true },
+								{ "key": "produto_codigo", "value": "", "disabled": true },
+								{ "key": "ponto_id", "value": "", "disabled": true }
+							]
+						}
+					}
+				},
+				{
+					"name": "Criar ordem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"produto_codigo\": \"BRITA1\",\n    \"quantidade_prevista\": 32.0,\n    \"placa_veiculo\": \"ABC1D23\",\n    \"motorista_documento\": \"12345678901\",\n    \"motorista_nome\": \"João Motorista\",\n    \"ticket_guardian\": \"TK0001\",\n    \"tara\": 15.0,\n    \"placa_carreta\": null,\n    \"transportadora_nome\": \"Transportadora XYZ\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento"]
+						}
+					}
+				},
+				{
+					"name": "Detalhe da ordem",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Iniciar carregamento (Próximo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"operador_id\": 1,\n    \"ponto_carregamento_id\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/iniciar",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "iniciar"]
+						}
+					}
+				},
+				{
+					"name": "Concluir carregamento (Carregado)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"operador_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/concluir",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "concluir"]
+						}
+					}
+				},
+				{
+					"name": "Rejeitar ordem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"descricao\": \"Caminhão com problema na carroceria\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/rejeitar",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "rejeitar"]
+						}
+					}
+				},
+				{
+					"name": "Registrar divergência",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tipo\": \"PESO_FORA_TOLERANCIA\",\n    \"descricao\": \"Peso líquido 5% acima do previsto\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/divergencias",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "divergencias"]
+						}
+					}
+				},
+				{
+					"name": "Registrar pesagem final",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"peso_bruto\": 47.5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/pesagem-final",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "pesagem-final"]
+						}
+					}
+				},
+				{
+					"name": "Liberar faturamento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"observacao\": \"Liberado para faturamento\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/liberar-faturamento",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "liberar-faturamento"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Fila de Carregamento",
+			"item": [
+				{
+					"name": "Fila do ponto",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/fila-carregamento?ponto_carregamento_id=5",
+							"host": ["{{base_url}}"],
+							"path": ["fila-carregamento"],
+							"query": [
+								{ "key": "ponto_carregamento_id", "value": "5" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Minha fila (operador)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/operador/minha-fila",
+							"host": ["{{base_url}}"],
+							"path": ["operador", "minha-fila"]
+						}
+					}
+				},
+				{
+					"name": "Liberar para fila",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/fila-carregamento/{{ordem_id}}/liberar",
+							"host": ["{{base_url}}"],
+							"path": ["fila-carregamento", "{{ordem_id}}", "liberar"]
+						}
+					}
+				},
+				{
+					"name": "Validar ordem para fila",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/fila-carregamento/{{ordem_id}}/validar",
+							"host": ["{{base_url}}"],
+							"path": ["fila-carregamento", "{{ordem_id}}", "validar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Motorista",
+			"item": [
+				{
+					"name": "Minha ordem (motorista)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_motorista}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/motorista/minha-ordem",
+							"host": ["{{base_url}}"],
+							"path": ["motorista", "minha-ordem"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Chat",
+			"item": [
+				{
+					"name": "Listar mensagens",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/mensagens",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "mensagens"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enviar mensagem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mensagem\": \"Pode se posicionar na bica 1\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/mensagens",
+							"host": ["{{base_url}}"],
+							"path": ["ordens-carregamento", "{{ordem_id}}", "mensagens"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Divergências",
+			"item": [
+				{
+					"name": "Listar divergências",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/divergencias?status=ABERTA",
+							"host": ["{{base_url}}"],
+							"path": ["divergencias"],
+							"query": [
+								{ "key": "status", "value": "ABERTA" },
+								{ "key": "tipo", "value": "", "disabled": true },
+								{ "key": "ordem_id", "value": "", "disabled": true }
+							]
+						}
+					}
+				},
+				{
+					"name": "Resolver divergência",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"observacao\": \"Autorizado após vistoria técnica\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/divergencias/{{divergencia_id}}/resolver",
+							"host": ["{{base_url}}"],
+							"path": ["divergencias", "{{divergencia_id}}", "resolver"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Integrações",
+			"item": [
+				{
+					"name": "Consultar pedido Protheus",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/integracoes/protheus/pedidos/781456",
+							"host": ["{{base_url}}"],
+							"path": ["integracoes", "protheus", "pedidos", "781456"]
+						}
+					}
+				},
+				{
+					"name": "Consultar ticket Guardian",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/integracoes/guardian/tickets/0000001",
+							"host": ["{{base_url}}"],
+							"path": ["integracoes", "guardian", "tickets", "0000001"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cadastros",
+			"item": [
+				{
+					"name": "Listar pontos de carregamento",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento",
+							"host": ["{{base_url}}"],
+							"path": ["pontos-carregamento"]
+						}
+					}
+				},
+				{
+					"name": "Criar ponto de carregamento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"codigo\": \"PONTO002\",\n    \"descricao\": \"Unidade Britagem Secundária\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento",
+							"host": ["{{base_url}}"],
+							"path": ["pontos-carregamento"]
+						}
+					}
+				},
+				{
+					"name": "Listar pilhas de produto",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto",
+							"host": ["{{base_url}}"],
+							"path": ["pilhas-produto"]
+						}
+					}
+				},
+				{
+					"name": "Criar pilha de produto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"codigo\": \"PILHA002\",\n    \"descricao\": \"Pilha Areia\",\n    \"produto_codigo\": \"AREIA\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto",
+							"host": ["{{base_url}}"],
+							"path": ["pilhas-produto"]
+						}
+					}
+				},
+				{
+					"name": "Listar produto × pilha × ponto",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/produto-pilha-ponto",
+							"host": ["{{base_url}}"],
+							"path": ["produto-pilha-ponto"]
+						}
+					}
+				},
+				{
+					"name": "Vincular produto × pilha × ponto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"produto_codigo\": \"BRITA1\",\n    \"pilha_produto_id\": 1,\n    \"ponto_carregamento_id\": 1,\n    \"padrao\": true,\n    \"ativo\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/produto-pilha-ponto",
+							"host": ["{{base_url}}"],
+							"path": ["produto-pilha-ponto"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
