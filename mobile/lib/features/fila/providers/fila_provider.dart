@@ -43,6 +43,13 @@ class FilaNotifier extends StateNotifier<AsyncValue<List<OrdemModel>>> {
     await _api.post('/ordens-carregamento/$ordemId/concluir');
     await carregar();
   }
+
+  Future<void> rejeitar(String ordemId, String descricao) async {
+    await _api.post('/ordens-carregamento/$ordemId/rejeitar', data: {
+      'descricao': descricao,
+    });
+    await carregar();
+  }
 }
 
 final ordemDetalheProvider = FutureProvider.family<OrdemModel, String>((ref, id) async {

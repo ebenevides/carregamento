@@ -22,5 +22,6 @@ class UsuarioModel {
       );
 
   bool get isOperador => perfil == 'OPERADOR';
+  bool get isMotorista => perfil == 'MOTORISTA';
   bool get isSupervisor => perfil == 'SUPERVISOR' || perfil == 'ADMINISTRADOR';
 }

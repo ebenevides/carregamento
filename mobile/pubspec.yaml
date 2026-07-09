@@ -22,8 +22,9 @@ dependencies:
   # Navegação
   go_router: ^14.6.2
 
-  # WebSocket (fila real-time)
+  # WebSocket (fila real-time + canais privados)
   web_socket_channel: ^3.0.1
+  pusher_channels_flutter: ^2.4.0
 
   # UI
   cupertino_icons: ^1.0.8

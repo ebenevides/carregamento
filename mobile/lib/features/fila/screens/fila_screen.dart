@@ -97,115 +97,189 @@ class _OrdemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push('/ordem/${ordem.id}'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => context.push('/ordem/${ordem.id}'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: _statusColor,
-                    radius: 16,
-                    child: Text('$posicao', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ordem.placaVeiculo,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: _statusColor,
+                        radius: 16,
+                        child: Text('$posicao', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ordem.placaVeiculo,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            Text(ordem.motoristaNome ?? '—', style: const TextStyle(color: Colors.grey)),
+                          ],
                         ),
-                        Text(ordem.motoristaNome ?? '—', style: const TextStyle(color: Colors.grey)),
-                      ],
+                      ),
+                      if (ordem.temDivergencia)
+                        const Icon(Icons.warning_amber, color: Colors.red, size: 28),
+                      const SizedBox(width: 4),
+                      if (ordem.estaAtivo)
+                        IconButton(
+                          icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
+                          tooltip: 'Chat',
+                          onPressed: () => context.push('/chat/${ordem.id}'),
+                        ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  _InfoRow(Icons.inventory_2, 'Produto', '${ordem.produtoCodigo} — ${ordem.produtoDescricao ?? ""}'),
+                  _InfoRow(Icons.scale, 'Qtd. prevista', '${ordem.quantidadePrevista} ${ordem.unidade}'),
+                  if (ordem.pilhaProduto != null)
+                    _InfoRow(Icons.layers, 'Pilha', ordem.pilhaProduto!['codigo'] ?? ''),
+                  if (ordem.ticketGuardian != null)
+                    _InfoRow(Icons.receipt_long, 'Ticket', ordem.ticketGuardian!),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: _statusColor),
+                    ),
+                    child: Text(
+                      ordem.statusLabel,
+                      style: TextStyle(color: _statusColor, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  if (ordem.temDivergencia)
-                    const Icon(Icons.warning_amber, color: Colors.red, size: 28),
                 ],
               ),
-              const Divider(height: 20),
-              _InfoRow(Icons.inventory_2, 'Produto', '${ordem.produtoCodigo} — ${ordem.produtoDescricao ?? ""}'),
-              _InfoRow(Icons.scale, 'Qtd. prevista', '${ordem.quantidadePrevista} ${ordem.unidade}'),
-              if (ordem.pilhaProduto != null)
-                _InfoRow(Icons.layers, 'Pilha', ordem.pilhaProduto!['codigo'] ?? ''),
-              if (ordem.ticketGuardian != null)
-                _InfoRow(Icons.receipt_long, 'Ticket', ordem.ticketGuardian!),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _statusColor),
-                ),
-                child: Text(
-                  ordem.statusLabel,
-                  style: TextStyle(color: _statusColor, fontWeight: FontWeight.bold),
+            ),
+            // Botões de ação
+            if (ordem.aguardando) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Iniciar Carregamento'),
+                  style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Iniciar carregamento?'),
+                        content: Text('Placa: ${ordem.placaVeiculo}'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Iniciar')),
+                        ],
+                      ),
+                    );
+                    if (confirm == true && context.mounted) {
+                      await ref.read(filaProvider.notifier).iniciarCarregamento(ordem.id);
+                    }
+                  },
                 ),
               ),
-              if (ordem.aguardando) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Iniciar Carregamento'),
-                    style: FilledButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Iniciar carregamento?'),
-                          content: Text('Placa: ${ordem.placaVeiculo}'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Iniciar')),
-                          ],
-                        ),
-                      );
-                      if (confirm == true && context.mounted) {
-                        await ref.read(filaProvider.notifier).iniciarCarregamento(ordem.id);
-                      }
-                    },
-                  ),
-                ),
-              ],
-              if (ordem.emCarregamento) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Concluir Carregamento'),
-                    style: FilledButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Concluir carregamento?'),
-                          content: Text('Placa: ${ordem.placaVeiculo}'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Concluir')),
-                          ],
-                        ),
-                      );
-                      if (confirm == true && context.mounted) {
-                        await ref.read(filaProvider.notifier).concluirCarregamento(ordem.id);
-                      }
-                    },
-                  ),
-                ),
-              ],
             ],
-          ),
+            if (ordem.emCarregamento) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                      label: const Text('Rejeitar', style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                      onPressed: () => _mostrarModalRejeitar(context, ref, ordem),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.check_circle),
+                      label: const Text('Concluir'),
+                      style: FilledButton.styleFrom(backgroundColor: Colors.blue),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Concluir carregamento?'),
+                            content: Text('Placa: ${ordem.placaVeiculo}'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Concluir')),
+                            ],
+                          ),
+                        );
+                        if (confirm == true && context.mounted) {
+                          await ref.read(filaProvider.notifier).concluirCarregamento(ordem.id);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
         ),
+      ),
+    );
+  }
+
+  void _mostrarModalRejeitar(BuildContext context, WidgetRef ref, OrdemModel ordem) {
+    final descController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rejeitar caminhão'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Placa: ${ordem.placaVeiculo}'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(
+                labelText: 'Motivo da rejeição *',
+                hintText: 'Mínimo de 5 caracteres',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              minLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              final desc = descController.text.trim();
+              if (desc.length < 5) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('Descreva o motivo (mín. 5 caracteres)')),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+              await ref.read(filaProvider.notifier).rejeitar(ordem.id, desc);
+            },
+            child: const Text('Rejeitar'),
+          ),
+        ],
       ),
     );
   }
