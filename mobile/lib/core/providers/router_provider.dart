@@ -42,15 +42,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/fila', builder: (_, __) => const FilaScreen()),
+      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/fila', builder: (_, _) => const FilaScreen()),
       GoRoute(
         path: '/ordem/:id',
         builder: (_, state) => OrdemDetalheScreen(ordemId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/motorista/minha-carga',
-        builder: (_, __) => const MinhaCargaScreen(),
+        builder: (_, _) => const MinhaCargaScreen(),
       ),
       GoRoute(
         path: '/chat/:ordemId',

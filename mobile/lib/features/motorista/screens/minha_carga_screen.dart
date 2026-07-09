@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/motorista_provider.dart';
+import '../models/ordem_motorista_model.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class MinhaCargaScreen extends ConsumerWidget {
@@ -73,7 +74,7 @@ class MinhaCargaScreen extends ConsumerWidget {
 }
 
 class _ComOrdem extends ConsumerWidget {
-  final ordem;
+  final OrdemMotoristaModel ordem;
 
   const _ComOrdem({required this.ordem});
 
