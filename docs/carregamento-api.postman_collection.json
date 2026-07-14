@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "carregamento-api",
 		"name": "Carregamento API",
-		"description": "Coleção para testar a API do Sistema de Carregamento.\n\nBase URL: http://localhost/api/v1\n\n## Usuários de teste\n- admin@carregamento.local / password (ADMIN)\n- expedicao@carregamento.local / password (EXPEDICAO)\n- operador@carregamento.local / password (OPERADOR)\n- motorista@carregamento.local / password (MOTORISTA)",
+		"description": "Coleção para testar a API do Sistema de Carregamento.\n\nBase URL: http://localhost/api/v1\n\n## Usuários de teste\n- admin@carregamento.local / password (ADMIN)\n- expedicao@carregamento.local / password (EXPEDICAO)\n- operador@carregamento.local / password (OPERADOR)\n- motorista@carregamento.local / password (MOTORISTA)\n\n## App Mobile (Flutter)\nO folder \"App Mobile (simulação Flutter)\" reproduz fielmente as chamadas feitas pelo app carregamento_operador (perfis OPERADOR e MOTORISTA), incluindo os corpos JSON exatos enviados pelo cliente Dio e testes automatizados (pm.test) que validam status e encadeiam variáveis (token, ordem_id) entre as requisições. Requer o seed `TestDataSeeder` (ver descrição do folder).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -27,6 +27,50 @@
 		{
 			"key": "divergencia_id",
 			"value": ""
+		},
+		{
+			"key": "ponto_id",
+			"value": ""
+		},
+		{
+			"key": "pilha_id",
+			"value": ""
+		},
+		{
+			"key": "produto_pilha_ponto_id",
+			"value": ""
+		},
+		{
+			"key": "token_app_operador",
+			"value": ""
+		},
+		{
+			"key": "token_app_motorista",
+			"value": ""
+		},
+		{
+			"key": "mobile_operador_id",
+			"value": ""
+		},
+		{
+			"key": "mobile_ponto_id",
+			"value": ""
+		},
+		{
+			"key": "mobile_motorista_id",
+			"value": ""
+		},
+		{
+			"key": "ordem_app_id",
+			"value": ""
+		},
+		{
+			"key": "ordem_app_id_alt",
+			"value": ""
+		},
+		{
+			"key": "ordem_app_motorista_id",
+			"value": ""
 		}
 	],
 	"item": [
@@ -49,7 +93,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -57,8 +104,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				},
@@ -78,7 +130,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -86,8 +141,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				},
@@ -97,8 +157,12 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/me",
-							"host": ["{{base_url}}"],
-							"path": ["me"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"me"
+							]
 						}
 					}
 				}
@@ -113,16 +177,46 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento?data_inicio=2026-07-01&data_fim=2026-07-31",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento"
+							],
 							"query": [
-								{ "key": "data_inicio", "value": "2026-07-01" },
-								{ "key": "data_fim", "value": "2026-07-31" },
-								{ "key": "status", "value": "", "disabled": true },
-								{ "key": "ticket", "value": "", "disabled": true },
-								{ "key": "placa", "value": "", "disabled": true },
-								{ "key": "produto_codigo", "value": "", "disabled": true },
-								{ "key": "ponto_id", "value": "", "disabled": true }
+								{
+									"key": "data_inicio",
+									"value": "2026-07-01"
+								},
+								{
+									"key": "data_fim",
+									"value": "2026-07-31"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "ticket",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "placa",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "produto_codigo",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "ponto_id",
+									"value": "",
+									"disabled": true
+								}
 							]
 						}
 					}
@@ -132,7 +226,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -140,8 +237,12 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento"
+							]
 						}
 					}
 				},
@@ -151,8 +252,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}"
+							]
 						}
 					}
 				},
@@ -161,7 +267,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -169,8 +278,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/iniciar",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "iniciar"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"iniciar"
+							]
 						}
 					}
 				},
@@ -179,7 +294,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -187,8 +305,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/concluir",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "concluir"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"concluir"
+							]
 						}
 					}
 				},
@@ -197,7 +321,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -205,8 +332,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/rejeitar",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "rejeitar"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"rejeitar"
+							]
 						}
 					}
 				},
@@ -215,7 +348,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -223,8 +359,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/divergencias",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "divergencias"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"divergencias"
+							]
 						}
 					}
 				},
@@ -233,7 +375,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -241,8 +386,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/pesagem-final",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "pesagem-final"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"pesagem-final"
+							]
 						}
 					}
 				},
@@ -251,7 +402,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -259,8 +413,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/liberar-faturamento",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "liberar-faturamento"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"liberar-faturamento"
+							]
 						}
 					}
 				}
@@ -275,10 +435,17 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/fila-carregamento?ponto_carregamento_id=5",
-							"host": ["{{base_url}}"],
-							"path": ["fila-carregamento"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"fila-carregamento"
+							],
 							"query": [
-								{ "key": "ponto_carregamento_id", "value": "5" }
+								{
+									"key": "ponto_carregamento_id",
+									"value": "5"
+								}
 							]
 						}
 					}
@@ -289,8 +456,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/operador/minha-fila",
-							"host": ["{{base_url}}"],
-							"path": ["operador", "minha-fila"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"operador",
+								"minha-fila"
+							]
 						}
 					}
 				},
@@ -300,8 +472,14 @@
 						"method": "POST",
 						"url": {
 							"raw": "{{base_url}}/fila-carregamento/{{ordem_id}}/liberar",
-							"host": ["{{base_url}}"],
-							"path": ["fila-carregamento", "{{ordem_id}}", "liberar"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"fila-carregamento",
+								"{{ordem_id}}",
+								"liberar"
+							]
 						}
 					}
 				},
@@ -311,8 +489,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/fila-carregamento/{{ordem_id}}/validar",
-							"host": ["{{base_url}}"],
-							"path": ["fila-carregamento", "{{ordem_id}}", "validar"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"fila-carregamento",
+								"{{ordem_id}}",
+								"validar"
+							]
 						}
 					}
 				}
@@ -337,8 +521,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/motorista/minha-ordem",
-							"host": ["{{base_url}}"],
-							"path": ["motorista", "minha-ordem"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"motorista",
+								"minha-ordem"
+							]
 						}
 					}
 				}
@@ -353,8 +542,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/mensagens",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "mensagens"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"mensagens"
+							]
 						}
 					},
 					"response": []
@@ -364,7 +559,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -372,8 +570,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/ordens-carregamento/{{ordem_id}}/mensagens",
-							"host": ["{{base_url}}"],
-							"path": ["ordens-carregamento", "{{ordem_id}}", "mensagens"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ordens-carregamento",
+								"{{ordem_id}}",
+								"mensagens"
+							]
 						}
 					}
 				}
@@ -388,12 +592,27 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/divergencias?status=ABERTA",
-							"host": ["{{base_url}}"],
-							"path": ["divergencias"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"divergencias"
+							],
 							"query": [
-								{ "key": "status", "value": "ABERTA" },
-								{ "key": "tipo", "value": "", "disabled": true },
-								{ "key": "ordem_id", "value": "", "disabled": true }
+								{
+									"key": "status",
+									"value": "ABERTA"
+								},
+								{
+									"key": "tipo",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "ordem_id",
+									"value": "",
+									"disabled": true
+								}
 							]
 						}
 					}
@@ -403,7 +622,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -411,8 +633,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/divergencias/{{divergencia_id}}/resolver",
-							"host": ["{{base_url}}"],
-							"path": ["divergencias", "{{divergencia_id}}", "resolver"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"divergencias",
+								"{{divergencia_id}}",
+								"resolver"
+							]
 						}
 					}
 				}
@@ -427,8 +655,15 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/integracoes/protheus/pedidos/781456",
-							"host": ["{{base_url}}"],
-							"path": ["integracoes", "protheus", "pedidos", "781456"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"integracoes",
+								"protheus",
+								"pedidos",
+								"781456"
+							]
 						}
 					}
 				},
@@ -438,8 +673,15 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/integracoes/guardian/tickets/0000001",
-							"host": ["{{base_url}}"],
-							"path": ["integracoes", "guardian", "tickets", "0000001"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"integracoes",
+								"guardian",
+								"tickets",
+								"0000001"
+							]
 						}
 					}
 				}
@@ -454,8 +696,12 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/pontos-carregamento",
-							"host": ["{{base_url}}"],
-							"path": ["pontos-carregamento"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento"
+							]
 						}
 					}
 				},
@@ -464,7 +710,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -472,8 +721,109 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/pontos-carregamento",
-							"host": ["{{base_url}}"],
-							"path": ["pontos-carregamento"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento"
+							]
+						}
+					}
+				},
+				{
+					"name": "Detalhe do ponto de carregamento",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento/{{ponto_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento",
+								"{{ponto_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar ponto de carregamento",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento/{{ponto_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento",
+								"{{ponto_id}}"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"descricao\": \"Bica 1 - Unidade Britagem Primária (renomeada)\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						]
+					}
+				},
+				{
+					"name": "Ativar ponto de carregamento",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento/{{ponto_id}}/ativar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento",
+								"{{ponto_id}}",
+								"ativar"
+							]
+						}
+					}
+				},
+				{
+					"name": "Inativar ponto de carregamento",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento/{{ponto_id}}/inativar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento",
+								"{{ponto_id}}",
+								"inativar"
+							]
+						}
+					}
+				},
+				{
+					"name": "Excluir ponto de carregamento",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{base_url}}/pontos-carregamento/{{ponto_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pontos-carregamento",
+								"{{ponto_id}}"
+							]
 						}
 					}
 				},
@@ -483,8 +833,12 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/pilhas-produto",
-							"host": ["{{base_url}}"],
-							"path": ["pilhas-produto"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto"
+							]
 						}
 					}
 				},
@@ -493,7 +847,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -501,8 +858,109 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/pilhas-produto",
-							"host": ["{{base_url}}"],
-							"path": ["pilhas-produto"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto"
+							]
+						}
+					}
+				},
+				{
+					"name": "Detalhe da pilha de produto",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto/{{pilha_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto",
+								"{{pilha_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar pilha de produto",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto/{{pilha_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto",
+								"{{pilha_id}}"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"descricao\": \"Pilha Areia Lavada\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						]
+					}
+				},
+				{
+					"name": "Ativar pilha de produto",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto/{{pilha_id}}/ativar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto",
+								"{{pilha_id}}",
+								"ativar"
+							]
+						}
+					}
+				},
+				{
+					"name": "Inativar pilha de produto",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto/{{pilha_id}}/inativar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto",
+								"{{pilha_id}}",
+								"inativar"
+							]
+						}
+					}
+				},
+				{
+					"name": "Excluir pilha de produto",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{base_url}}/pilhas-produto/{{pilha_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pilhas-produto",
+								"{{pilha_id}}"
+							]
 						}
 					}
 				},
@@ -512,8 +970,12 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{base_url}}/produto-pilha-ponto",
-							"host": ["{{base_url}}"],
-							"path": ["produto-pilha-ponto"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"produto-pilha-ponto"
+							]
 						}
 					}
 				},
@@ -522,7 +984,10 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -530,10 +995,719 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/produto-pilha-ponto",
-							"host": ["{{base_url}}"],
-							"path": ["produto-pilha-ponto"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"produto-pilha-ponto"
+							]
 						}
 					}
+				},
+				{
+					"name": "Desvincular produto × pilha × ponto",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{base_url}}/produto-pilha-ponto/{{produto_pilha_ponto_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"produto-pilha-ponto",
+								"{{produto_pilha_ponto_id}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "App Mobile (simulação Flutter)",
+			"description": "Reproduz exatamente as chamadas feitas pelo app Flutter (carregamento_operador): mesmos paths, mesmos corpos JSON e mesmo header Accept: application/json de mobile/lib/core/api/api_client.dart, com scripts de teste (pm.test) e encadeamento automático de variáveis (token, ids) entre requisições.\n\nPré-requisito: rodar o seed de dados de teste dentro do container antes de usar este folder —\n`docker exec carregamento-app-1 php artisan db:seed --class=TestDataSeeder`\n\nEle cria os usuários operador1@teste.com / motorista1@teste.com (senha 'password') e ordens de exemplo (ORDTESTE01..07) na fila do PONTO001.",
+			"auth": {
+				"type": "noauth"
+			},
+			"item": [
+				{
+					"name": "Fluxo Operador (pá-carregadeira)",
+					"description": "Sequência exata de chamadas feitas pelo app Flutter para o perfil OPERADOR (mobile/lib/features/auth, fila, chat, divergencia). Rode em ordem 1→8 para o fluxo feliz; 9 e 10 são alternativos e usam uma segunda ordem da fila.",
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{token_app_operador}}",
+								"type": "string"
+							}
+						]
+					},
+					"item": [
+						{
+							"name": "1. Login (operador1@teste.com)",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/auth/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"operador1@teste.com\",\n    \"password\": \"password\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Mesma chamada de mobile/lib/features/auth/providers/auth_provider.dart (login). Requer o seed de dados de teste: php artisan db:seed --class=TestDataSeeder",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"const json = pm.response.json();",
+											"pm.test('retorna token e usuario', () => {",
+											"    pm.expect(json.token).to.be.a('string');",
+											"    pm.expect(json.user.perfil).to.eql('OPERADOR');",
+											"});",
+											"pm.collectionVariables.set('token_app_operador', json.token);",
+											"pm.collectionVariables.set('mobile_operador_id', json.user.id);",
+											"pm.collectionVariables.set('mobile_ponto_id', json.user.ponto_carregamento_id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "2. Me (sessão do app)",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"me"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada feita no boot do app (AuthNotifier._init) quando já existe token salvo no flutter_secure_storage."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"pm.test('perfil OPERADOR', () => pm.expect(pm.response.json().perfil).to.eql('OPERADOR'));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "3. Minha fila (tela inicial do operador)",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/operador/minha-fila",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"operador",
+										"minha-fila"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de fila_provider.dart (FilaNotifier.carregar), consumida pela tela de fila do operador."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"const json = pm.response.json();",
+											"const lista = json.data || [];",
+											"pm.test('retorna lista', () => pm.expect(lista).to.be.an('array'));",
+											"",
+											"const aguardando = lista.find(o => o.status === 'AGUARDANDO_CARREGAMENTO');",
+											"const emCarregamento = lista.find(o => o.status === 'EM_CARREGAMENTO');",
+											"",
+											"if (aguardando) pm.collectionVariables.set('ordem_app_id', aguardando.id);",
+											"else if (lista[0]) pm.collectionVariables.set('ordem_app_id', lista[0].id);",
+											"",
+											"if (emCarregamento) pm.collectionVariables.set('ordem_app_id_alt', emCarregamento.id);",
+											"else if (lista[1]) pm.collectionVariables.set('ordem_app_id_alt', lista[1].id);",
+											"",
+											"if (!aguardando && !emCarregamento && !lista.length) {",
+											"    console.warn('Fila vazia — rode php artisan db:seed --class=TestDataSeeder antes deste fluxo.');",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "4. Detalhe da ordem (tela de detalhe)",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id}}"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de fila_provider.dart (ordemDetalheProvider), aberta ao tocar num item da fila."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "5. Chat — listar mensagens",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id}}/mensagens",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id}}",
+										"mensagens"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de chat_provider.dart (MensagensNotifier.carregar) ao abrir a aba de chat da ordem."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"pm.test('retorna lista', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "6. Chat — enviar mensagem",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id}}/mensagens",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id}}",
+										"mensagens"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"mensagem\": \"Pode se posicionar na bica 1\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de chat_provider.dart (MensagensNotifier.enviar)."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('mensagem enviada', () => pm.expect([200, 201]).to.include(pm.response.code));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "7. Iniciar carregamento (ação 'Próximo')",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id}}/iniciar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id}}",
+										"iniciar"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"operador_id\": \"{{mobile_operador_id}}\",\n    \"ponto_carregamento_id\": \"{{mobile_ponto_id}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de fila_provider.dart (FilaNotifier.iniciarCarregamento). Corpo idêntico ao enviado pelo app: operador_id e ponto_carregamento_id do usuário logado."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"pm.test('ordem em EM_CARREGAMENTO', () => pm.expect(pm.response.json().data.status).to.eql('EM_CARREGAMENTO'));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "8. Concluir carregamento",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id}}/concluir",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id}}",
+										"concluir"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de fila_provider.dart (FilaNotifier.concluirCarregamento) — sem corpo, igual ao app (o backend aceita operador_id opcional, mas o Flutter não envia nenhum)."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"pm.test('ordem aguardando pesagem final', () => pm.expect(pm.response.json().data.status).to.eql('AGUARDANDO_PESAGEM_FINAL'));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "9. (alternativo) Rejeitar ordem",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id_alt}}/rejeitar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id_alt}}",
+										"rejeitar"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"descricao\": \"Caminhão com problema na carroceria\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de fila_provider.dart (FilaNotifier.rejeitar). Fluxo alternativo ao 'Iniciar → Concluir': roda isolado, sobre outra ordem da fila (gera DIVERGENCIA, nunca CANCELADO)."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('rejeitado (200 ou 422 se ordem já mudou de status)', () => pm.expect([200, 201, 422]).to.include(pm.response.code));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "10. (alternativo) Registrar divergência",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_id_alt}}/divergencias",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_id_alt}}",
+										"divergencias"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"tipo\": \"VEICULO_DIVERGENTE\",\n    \"descricao\": \"Placa do veículo não confere com o ticket do Guardian\",\n    \"usuario_id\": \"{{mobile_operador_id}}\",\n    \"origem\": \"APP_OPERADOR\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de registrar_divergencia_screen.dart. Tipos aceitos pelo app: PRODUTO_DIVERGENTE, QUANTIDADE_DIVERGENTE, VEICULO_DIVERGENTE, MOTORISTA_DIVERGENTE, TICKET_INVALIDO, TARA_INVALIDA, PONTO_INDISPONIVEL, OUTRO. Fluxo alternativo — roda isolado."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('divergência registrada', () => pm.response.to.have.status(201));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Fluxo Motorista",
+					"description": "Sequência de chamadas do perfil MOTORISTA no app Flutter (mobile/lib/features/motorista, chat).",
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{token_app_motorista}}",
+								"type": "string"
+							}
+						]
+					},
+					"item": [
+						{
+							"name": "1. Login (motorista1@teste.com)",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/auth/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"motorista1@teste.com\",\n    \"password\": \"password\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"description": "Login do perfil MOTORISTA — mesmo endpoint do operador, o app resolve a tela pelo campo 'perfil' retornado no login.",
+								"auth": {
+									"type": "noauth"
+								}
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"const json = pm.response.json();",
+											"pm.test('perfil MOTORISTA', () => pm.expect(json.user.perfil).to.eql('MOTORISTA'));",
+											"pm.collectionVariables.set('token_app_motorista', json.token);",
+											"pm.collectionVariables.set('mobile_motorista_id', json.user.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "2. Me (sessão do app)",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"me"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								]
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));",
+											"pm.test('perfil MOTORISTA', () => pm.expect(pm.response.json().perfil).to.eql('MOTORISTA'));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "3. Minha ordem (tela inicial do motorista)",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/motorista/minha-ordem",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"motorista",
+										"minha-ordem"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Chamada de motorista_provider.dart. Responde 204 sem corpo quando o motorista não tem ordem ativa — o app trata os dois casos."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('200 (ordem ativa) ou 204 (sem ordem)', () => pm.expect([200, 204]).to.include(pm.response.code));",
+											"if (pm.response.code === 200) {",
+											"    const json = pm.response.json();",
+											"    pm.collectionVariables.set('ordem_app_motorista_id', json.data ? json.data.id : json.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "4. Chat — listar mensagens",
+							"request": {
+								"method": "GET",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_motorista_id}}/mensagens",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_motorista_id}}",
+										"mensagens"
+									]
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"description": "Só faz sentido após a requisição 3 retornar uma ordem ativa (200)."
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('status 200', () => pm.response.to.have.status(200));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "5. Chat — enviar mensagem",
+							"request": {
+								"method": "POST",
+								"url": {
+									"raw": "{{base_url}}/ordens-carregamento/{{ordem_app_motorista_id}}/mensagens",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"ordens-carregamento",
+										"{{ordem_app_motorista_id}}",
+										"mensagens"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"mensagem\": \"Chegando em 10 minutos\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								]
+							},
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('mensagem enviada', () => pm.expect([200, 201]).to.include(pm.response.code));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						}
+					]
 				}
 			]
 		}
