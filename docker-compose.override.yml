@@ -15,6 +15,7 @@ services:
 
   node:
     image: node:22-alpine
+    user: "${UID:-1000}:${GID:-1000}"
     working_dir: /app
     volumes:
       - ./app:/app
