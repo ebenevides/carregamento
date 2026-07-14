@@ -74,6 +74,11 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - Documentação reorganizada: todos os `.md` soltos (exceto READMEs) movidos para `docs/`; `CLAUDE.md`
   criado na raiz com guia de arquitetura/comandos para instâncias futuras do Claude Code
 
+### Fase 15+ — Laravel Telescope
+- `laravel/telescope` instalado (`require-dev`), migration `telescope_entries` rodada
+- Painel em `/telescope`, liberado por padrão só em `APP_ENV=local` (gate `viewTelescope` vazio fora disso)
+- Ver DT-011
+
 ## Pendências críticas para produção
 - [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
 - [x] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
@@ -82,4 +87,4 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
 
 ## Última atualização
-2026-07-08
+2026-07-14

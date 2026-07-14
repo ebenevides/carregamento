@@ -169,3 +169,21 @@ Canais públicos não suportam autorização por usuário, necessária para chat
 
 ### Data
 2026-07-09
+
+---
+
+## DT-011 — Laravel Telescope para debug local
+
+### Decisão
+`laravel/telescope` instalado como dependência `require-dev`, com o gate `viewTelescope` (definido em `App\Providers\TelescopeServiceProvider`) restrito a lista de e-mails vazia por padrão — ou seja, acesso liberado apenas em `APP_ENV=local`.
+
+### Motivo
+Ferramenta de inspeção de requests/queries/jobs/eventos para acelerar debug local dos fluxos de integração (Protheus/Guardian) e do state machine de `OrdemCarregamento`, sem expor dados em produção.
+
+### Impacto
+- Migration `telescope_entries` adicionada
+- Provider registrado em `bootstrap/providers.php`
+- Painel acessível em `/telescope` somente com `APP_ENV=local` (ou usuário autorizado no gate, em outros ambientes)
+
+### Data
+2026-07-14
