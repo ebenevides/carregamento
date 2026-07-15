@@ -60,3 +60,16 @@ Protheus e Guardian não são acessados diretamente por frontend ou Flutter. Tod
 - Padrão: **5%** (configurável por ordem via `tolerancia_percentual`)
 - Cálculo: `abs(peso_liquido - quantidade_prevista) <= (quantidade_prevista * tolerancia_percentual / 100)`
 - Unidade Guardian: **kg**
+
+## Gaps identificados em testes (2026-07-15, cenário de testes mobile operador/motorista)
+
+### Motorista com múltiplas ordens ativas simultâneas — regra indefinida
+`GET /motorista/minha-ordem` assume implicitamente que um motorista tem no máximo uma ordem ativa
+por vez. Em teste manual (dados de `TestDataSeeder`, cenário artificial), um motorista com duas
+ordens ativas ao mesmo tempo (uma `AGUARDANDO_CARREGAMENTO`, outra `EM_CARREGAMENTO`) recebeu de
+volta a ordem mais antiga, não a mais recentemente alterada — o endpoint não tem critério de
+desempate documentado. Não é um bug (o cenário não deveria ocorrer em uso normal — um motorista/
+placa não deveria ter duas ordens ativas simultâneas), mas falta regra de negócio explícita
+proibindo isso na criação da ordem (Protheus/`RegistrarOrdemAction`) ou definindo prioridade de
+exibição no app. Avaliar nas próximas etapas se vale adicionar validação de "motorista já possui
+ordem ativa" ao criar ordem, ou documentar o critério de desempate do endpoint.

@@ -85,6 +85,13 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - [x] ~~14 testes falhando com `419` (CSRF/sessão)~~ — causa real: Vite manifest ausente; `npm run build` nunca rodado. Fix: Dockerfile reordenado (composer-builder antes de node-builder) + `npm run build` executado. **60/60 passando.**
 - [ ] Configurar `PROTHEUS_BASE_URL` + credenciais
 - [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
+- [ ] Testar em emulador/dispositivo real (não só via API): badge de não lidas do chat, indicador
+      visual "Pode se posicionar" chegando por realtime (Reverb/Pusher) sem refresh manual,
+      reconexão automática após queda de rede. Ver `docs/CHECKLIST_TESTES_MOBILE.md` — cenários de
+      backend/API já validados via `curl` em 2026-07-15, os de UI/realtime seguem pendentes por
+      falta de Flutter SDK no ambiente de teste atual.
+- [ ] Definir regra de negócio pra motorista com múltiplas ordens ativas simultâneas (gap
+      encontrado em teste — ver `docs/regras-negocio.md`, seção "Gaps identificados em testes").
 
 ## Última atualização
-2026-07-14
+2026-07-15
