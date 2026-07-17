@@ -9,6 +9,10 @@ services:
     volumes:
       - ./app:/var/www/html
 
+  reverb:
+    volumes:
+      - ./app:/var/www/html
+
   nginx:
     volumes:
       - ./app/public:/var/www/html/public:ro

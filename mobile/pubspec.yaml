@@ -22,9 +22,11 @@ dependencies:
   # Navegação
   go_router: ^14.6.2
 
-  # WebSocket (fila real-time + canais privados)
+  # WebSocket (fila real-time + canais privados) — protocolo Pusher falado
+  # manualmente em lib/core/realtime/realtime_client.dart. pusher_channels_flutter
+  # não é usado: não suporta host self-hosted (Reverb), só Pusher Cloud via
+  # "cluster" — ver Etapa 3 do roadmap / docs/DECISOES_TECNICAS.md.
   web_socket_channel: ^3.0.1
-  pusher_channels_flutter: ^2.4.0
 
   # UI
   cupertino_icons: ^1.0.8

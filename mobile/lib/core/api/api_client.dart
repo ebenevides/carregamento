@@ -2,7 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/secure_storage.dart';
 
-const String _baseUrl = 'http://link1.britaguia.com.br:5405/api/v1';
+/// Host raiz do backend (sem prefixo /api/v1) — usado também pelo
+/// RealtimeClient pra montar a URL do WebSocket e o endpoint /broadcasting/auth.
+const String apiRootUrl = 'http://link1.britaguia.com.br:5405';
+const String _baseUrl = '$apiRootUrl/api/v1';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(ref.watch(secureStorageProvider));
