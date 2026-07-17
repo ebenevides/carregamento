@@ -35,6 +35,10 @@
                     <span class="text-xs text-gray-400 block">Aguardando pesagem</span>
                     <span class="font-bold text-purple-600">{{ pendente_pesagem.length }}</span>
                 </div>
+                <div>
+                    <span class="text-xs text-gray-400 block">Aguardando fila</span>
+                    <span class="font-bold text-indigo-600">{{ pendente_fila.length }}</span>
+                </div>
             </div>
 
             <div v-if="$page.props.flash?.success"
@@ -92,6 +96,21 @@
                                     <td class="px-4 py-2 font-mono tabular-nums font-bold text-green-700">{{ fmtPeso(resultadoConsulta.peso_liquido_kg) }}</td>
                                     <td class="px-4 py-2 text-xs font-medium text-gray-500">Entrada</td>
                                     <td class="px-4 py-2 text-gray-800">{{ fmtDate(resultadoConsulta.data_entrada) }}</td>
+                                </tr>
+                                <tr v-if="resultadoConsulta.fila" class="bg-indigo-50">
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Fila</td>
+                                    <td class="px-4 py-2 text-gray-800">
+                                        {{ resultadoConsulta.fila.fila_nome ?? '—' }}
+                                        <span v-if="resultadoConsulta.fila.posicao != null" class="text-xs text-gray-500">
+                                            (posição {{ resultadoConsulta.fila.posicao }})
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 text-xs font-medium text-gray-500">Estado</td>
+                                    <td class="px-4 py-2">
+                                        <span :class="['font-semibold', resultadoConsulta.fila.liberado ? 'text-green-700' : 'text-orange-600']">
+                                            {{ resultadoConsulta.fila.liberado ? '✓ ' : '⏳ ' }}{{ resultadoConsulta.fila.estado_descricao ?? '—' }}
+                                        </span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -186,6 +205,52 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Ordens aguardando liberação da fila do Guardian -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-5 py-3 border-b bg-indigo-50 flex items-center justify-between">
+                    <h2 class="font-semibold text-indigo-700 text-sm uppercase tracking-wide">
+                        Aguardando fila do Guardian ({{ pendente_fila.length }})
+                    </h2>
+                    <span class="text-xs text-indigo-500">
+                        Status: TARA_REALIZADA — libera sozinho a cada 2min quando o Guardian sinaliza "Liberado"
+                    </span>
+                </div>
+                <div v-if="!pendente_fila.length" class="px-5 py-6 text-center text-gray-400 text-sm">
+                    Nenhuma ordem aguardando a fila do Guardian.
+                </div>
+                <table v-else class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Placa</th>
+                            <th class="px-4 py-2 text-left">Produto</th>
+                            <th class="px-4 py-2 text-left">Ticket</th>
+                            <th class="px-4 py-2 text-left">Tara desde</th>
+                            <th class="px-4 py-2 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="o in pendente_fila" :key="o.id" class="hover:bg-gray-50">
+                            <td class="px-4 py-2 font-mono font-bold">{{ o.placa }}</td>
+                            <td class="px-4 py-2 text-gray-600 text-xs">{{ o.produto }}</td>
+                            <td class="px-4 py-2 font-mono text-xs text-blue-600">{{ o.ticket }}</td>
+                            <td class="px-4 py-2 text-xs text-gray-400">{{ fmtDate(o.tara_em) }}</td>
+                            <td class="px-4 py-2 text-right">
+                                <div class="flex gap-2 justify-end">
+                                    <Link :href="route('ordens.show', o.id)"
+                                        class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">
+                                        Ver
+                                    </Link>
+                                    <button @click="syncFila(o)"
+                                        class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200">
+                                        Sync fila
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </AppLayout>
 </template>
@@ -199,6 +264,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 const props = defineProps({
     pendente_tara:    Array,
     pendente_pesagem: Array,
+    pendente_fila:    Array,
     mock_ativo:       Boolean,
     wsdl:             String,
 });
@@ -256,6 +322,10 @@ function syncTara(o) {
 
 function syncPesagem(o) {
     router.post(route('integracoes.guardian.sync-pesagem', { ordem: o.id }));
+}
+
+function syncFila(o) {
+    router.post(route('integracoes.guardian.sync-fila', { ordem: o.id }));
 }
 
 function syncTodas() {

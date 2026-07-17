@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/integracoes/guardian/sync-todas', [IntegracaoGuardianController::class, 'sincronizarTodas'])->name('integracoes.guardian.sync-todas');
     Route::post('/integracoes/guardian/{ordem}/sync-tara', [IntegracaoGuardianController::class, 'sincronizarTaraOrdem'])->name('integracoes.guardian.sync-tara');
     Route::post('/integracoes/guardian/{ordem}/sync-pesagem', [IntegracaoGuardianController::class, 'sincronizarPesagemOrdem'])->name('integracoes.guardian.sync-pesagem');
+    Route::post('/integracoes/guardian/{ordem}/sync-fila', [IntegracaoGuardianController::class, 'sincronizarFilaOrdem'])->name('integracoes.guardian.sync-fila');
 
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios');
     Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');

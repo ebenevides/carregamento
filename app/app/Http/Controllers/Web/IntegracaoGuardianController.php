@@ -44,9 +44,23 @@ class IntegracaoGuardianController extends Controller
                 'concluido_em'   => $o->concluido_em?->toISOString(),
             ]);
 
+        // Mesma query que SincronizarFilaGuardianJob processa a cada 2min — ver DT-014.
+        $pendenteFila = OrdemCarregamento::where('status', StatusOrdem::TARA_REALIZADA)
+            ->whereNotNull('ticket_guardian')
+            ->orderBy('updated_at')
+            ->get()
+            ->map(fn ($o) => [
+                'id'           => $o->id,
+                'placa'        => $o->placa_veiculo,
+                'produto'      => $o->produto_descricao,
+                'ticket'       => $o->ticket_guardian,
+                'tara_em'      => $o->updated_at?->toISOString(),
+            ]);
+
         return Inertia::render('Integracoes/Guardian/Index', [
             'pendente_tara'    => $pendenteTara,
             'pendente_pesagem' => $pendentePesagem,
+            'pendente_fila'    => $pendenteFila,
             'mock_ativo'       => config('integrations.guardian.mock'),
             'wsdl'             => config('integrations.guardian.wsdl'),
         ]);
@@ -59,6 +73,22 @@ class IntegracaoGuardianController extends Controller
         try {
             $dto = $this->guardian->consultarTicket($request->input('ticket'));
 
+            // Fila é uma consulta separada no Guardian — falha aqui não invalida o resto do ticket.
+            $fila = null;
+            try {
+                $filaDto = $this->guardian->consultarFila($dto->ticket, $dto->placa);
+                if ($filaDto->sucesso()) {
+                    $fila = [
+                        'posicao'          => $filaDto->posicao,
+                        'estado_descricao' => $filaDto->estadoDescricao,
+                        'liberado'         => $filaDto->liberado(),
+                        'fila_nome'        => $filaDto->filaNome,
+                    ];
+                }
+            } catch (\Throwable) {
+                // silencioso — consulta de ticket segue valendo sem o dado de fila
+            }
+
             return response()->json([
                 'ok'           => true,
                 'ticket'       => $dto->ticket,
@@ -70,6 +100,7 @@ class IntegracaoGuardianController extends Controller
                 'peso_liquido_kg' => $dto->pesoLiquidoKg(),
                 'data_entrada' => $dto->dataEntrada,
                 'data_saida'   => $dto->dataSaida,
+                'fila'         => $fila,
             ]);
         } catch (\Throwable $e) {
             return response()->json(['ok' => false, 'erro' => $e->getMessage()], 422);
@@ -96,12 +127,23 @@ class IntegracaoGuardianController extends Controller
         );
     }
 
+    public function sincronizarFilaOrdem(OrdemCarregamento $ordem): RedirectResponse
+    {
+        $ok = $this->guardian->sincronizarFila($ordem);
+
+        return back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? "Ordem {$ordem->placa_veiculo} liberada para a fila de carregamento." : "Veículo ainda não liberado na fila do Guardian (ticket: {$ordem->ticket_guardian})."
+        );
+    }
+
     public function sincronizarTodas(): RedirectResponse
     {
         $taras    = $this->guardian->sincronizarTodasTaras();
         $pesagens = $this->guardian->sincronizarTodasPesagens();
+        $filas    = $this->guardian->sincronizarTodasFilas();
 
-        return back()->with('success', "Sincronização concluída: {$taras} tara(s), {$pesagens} pesagem(ns).");
+        return back()->with('success', "Sincronização concluída: {$taras} tara(s), {$pesagens} pesagem(ns), {$filas} liberação(ões) de fila.");
     }
 
     public function relatorioPeriodo(Request $request): Response
