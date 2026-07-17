@@ -55,4 +55,26 @@ class IntegracaoController extends Controller
             'data_saida'   => $dto->dataSaida,
         ]);
     }
+
+    public function filaGuardian(string $ticket): JsonResponse
+    {
+        $dto = $this->guardian->consultarFila($ticket, request()->input('placa'));
+
+        return response()->json([
+            'ticket'            => $dto->ticket,
+            'sucesso'           => $dto->sucesso(),
+            'descricao'         => $dto->descricao,
+            'placa'             => $dto->placa,
+            'posicao'           => $dto->posicao,
+            'estado'            => $dto->estado,
+            'estado_descricao'  => $dto->estadoDescricao,
+            'liberado'          => $dto->liberado(),
+            'fila_id'           => $dto->filaId,
+            'fila_codigo'       => $dto->filaCodigo,
+            'fila_nome'         => $dto->filaNome,
+            'fila_mensagem'     => $dto->filaMensagem,
+            'mensagem_usuario'  => $dto->mensagemUsuario,
+            'data_atualizacao'  => $dto->dataAtualizacao,
+        ]);
+    }
 }

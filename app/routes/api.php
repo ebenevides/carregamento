@@ -80,6 +80,7 @@ Route::prefix('v1')->group(function () {
         // Integrações
         Route::get('integracoes/protheus/pedidos/{numero}', [IntegracaoController::class, 'pedidoProtheus']);
         Route::get('integracoes/guardian/tickets/{ticket}', [IntegracaoController::class, 'ticketGuardian']);
+        Route::get('integracoes/guardian/fila/{ticket}', [IntegracaoController::class, 'filaGuardian']);
 
         // Fila de carregamento
         Route::get('fila-carregamento', [FilaCarregamentoController::class, 'index']);

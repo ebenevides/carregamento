@@ -2,6 +2,7 @@
 
 namespace App\Domain\Integrations\Guardian\Adapters;
 
+use App\Domain\Integrations\Guardian\DTOs\FilaGuardianDTO;
 use App\Domain\Integrations\Guardian\DTOs\TicketGuardianDTO;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -78,6 +79,60 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         } catch (SoapFault $e) {
             $this->tratarFalha($e);
         }
+    }
+
+    /**
+     * FilaConsultaVeiculo — sem os parâmetros de auth produto/codigo dos
+     * demais métodos [INTERFACE] (confirmado em request real).
+     */
+    public function consultarFila(string $ticket, ?string $placa = null): FilaGuardianDTO
+    {
+        try {
+            $resposta = $this->client->FilaConsultaVeiculo([
+                'voConfiguracaoFila' => null,
+                'voDadosFila' => [
+                    'TicketCodigo' => $ticket,
+                    'Placa'        => $placa ?? '',
+                    'Tag'          => '',
+                ],
+            ]);
+
+            $ret = $resposta->voRetornoFila->VORetornoFilaConsulta ?? null;
+
+            if ($ret === null) {
+                throw new \RuntimeException("Guardian: resposta vazia ao consultar fila do ticket {$ticket}.");
+            }
+
+            Log::info('Guardian consultarFila', ['ticket' => $ticket, 'placa' => $placa]);
+
+            return $this->mapearFila($ticket, $ret);
+        } catch (SoapFault $e) {
+            $this->tratarFalha($e);
+        }
+    }
+
+    private function mapearFila(string $ticket, mixed $ret): FilaGuardianDTO
+    {
+        $ft = $ret->FilaTicketEntidade ?? null;
+        $cadastro = $ft->CadastroFilaEntidade ?? null;
+        $ticketEntidade = $ft->TicketEntidade ?? null;
+
+        return new FilaGuardianDTO(
+            ticket:           $ticket,
+            erro:             (int) ($ret->Erro ?? -1),
+            descricao:        isset($ret->Descricao) ? (string) $ret->Descricao : null,
+            placa:            isset($ticketEntidade->PlacaCarreta) && (string) $ticketEntidade->PlacaCarreta !== ''
+                                   ? (string) $ticketEntidade->PlacaCarreta : null,
+            posicao:          isset($ft->Posicao) ? (int) $ft->Posicao : null,
+            estado:           isset($ft->Estado) ? (string) $ft->Estado : null,
+            estadoDescricao:  isset($ft->EstadoDescricao) ? (string) $ft->EstadoDescricao : null,
+            filaId:           isset($ft->Fila) ? (int) $ft->Fila : null,
+            filaCodigo:       isset($cadastro->Codigo) ? (string) $cadastro->Codigo : null,
+            filaNome:         isset($cadastro->Nome) ? (string) $cadastro->Nome : null,
+            filaMensagem:     $this->stringOuNull($cadastro->Mensagem ?? null),
+            mensagemUsuario:  $this->stringOuNull($ft->MensagemUsuario ?? null),
+            dataAtualizacao:  isset($ft->DataAtualizacao) ? (string) $ft->DataAtualizacao : null,
+        );
     }
 
     public function consultarTara(string $ticket): float
@@ -289,6 +344,18 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
         }
 
         return [$pesoDoc, $unidade, $atendente, $pedido];
+    }
+
+    /** Elemento XML vazio (ex.: <Mensagem/>) pode chegar como stdClass em vez de string vazia — normaliza pra null. */
+    private function stringOuNull(mixed $valor): ?string
+    {
+        if (!is_scalar($valor)) {
+            return null;
+        }
+
+        $str = (string) $valor;
+
+        return $str !== '' ? $str : null;
     }
 
     private function tratarFalha(SoapFault $e): never

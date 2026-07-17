@@ -3,6 +3,7 @@
 namespace App\Domain\Integrations\Guardian\Services;
 
 use App\Domain\Carregamento\Actions\AlterarStatusOrdemAction;
+use App\Domain\Carregamento\Actions\EntrarNaFilaAction;
 use App\Domain\Carregamento\Actions\RegistrarPesagemFinalAction;
 use App\Domain\Carregamento\Actions\ResolverMotoristaAction;
 use App\Domain\Carregamento\DTOs\AlterarStatusDTO;
@@ -11,6 +12,7 @@ use App\Domain\Carregamento\Enums\StatusOrdem;
 use App\Domain\Carregamento\Enums\TipoEvento;
 use App\Domain\Carregamento\Models\OrdemCarregamento;
 use App\Domain\Integrations\Guardian\Adapters\GuardianAdapterInterface;
+use App\Domain\Integrations\Guardian\DTOs\FilaGuardianDTO;
 use App\Domain\Integrations\Guardian\DTOs\TicketGuardianDTO;
 use Illuminate\Support\Facades\Log;
 
@@ -21,11 +23,17 @@ class GuardianService
         private readonly AlterarStatusOrdemAction $alterarStatus,
         private readonly RegistrarPesagemFinalAction $registrarPesagem,
         private readonly ResolverMotoristaAction $resolverMotorista,
+        private readonly EntrarNaFilaAction $entrarNaFila,
     ) {}
 
     public function consultarTicket(string $ticket): TicketGuardianDTO
     {
         return $this->adapter->consultarTicket($ticket);
+    }
+
+    public function consultarFila(string $ticket, ?string $placa = null): FilaGuardianDTO
+    {
+        return $this->adapter->consultarFila($ticket, $placa);
     }
 
     public function verificarConectividade(): bool
@@ -96,6 +104,48 @@ class GuardianService
     }
 
     /**
+     * Para ordens em TARA_REALIZADA com ticket: consulta a fila do Guardian
+     * (FilaConsultaVeiculo) e, se o veículo estiver liberado lá, entra na
+     * nossa fila de carregamento (mesma validação/ação do fluxo manual de
+     * expedição — RN-001/002/003/005 via EntrarNaFilaAction).
+     */
+    public function sincronizarFila(OrdemCarregamento $ordem): bool
+    {
+        if ($ordem->ticket_guardian === null) {
+            return false;
+        }
+
+        if ($ordem->status !== StatusOrdem::TARA_REALIZADA) {
+            return false;
+        }
+
+        try {
+            $fila = $this->adapter->consultarFila($ordem->ticket_guardian, $ordem->placa_veiculo);
+
+            if (!$fila->sucesso() || !$fila->liberado()) {
+                return false;
+            }
+
+            $this->entrarNaFila->execute($ordem, OrigemEvento::GUARDIAN);
+
+            Log::info('Guardian: ordem liberada pela fila, entrou em AGUARDANDO_CARREGAMENTO', [
+                'ordem_id' => $ordem->id,
+                'ticket'   => $ordem->ticket_guardian,
+                'posicao'  => $fila->posicao,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning('Guardian: falha ao sincronizar fila', [
+                'ordem_id' => $ordem->id,
+                'ticket'   => $ordem->ticket_guardian,
+                'erro'     => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
      * Para ordens em AGUARDANDO_PESAGEM_FINAL:
      * busca peso bruto e registra pesagem final.
      */
@@ -154,6 +204,16 @@ class GuardianService
             ->get();
 
         return $ordens->filter(fn ($o) => $this->sincronizarPesagemFinal($o))->count();
+    }
+
+    /** Sincroniza fila de todas as ordens em TARA_REALIZADA. Retorna contagem liberadas para a fila. */
+    public function sincronizarTodasFilas(): int
+    {
+        $ordens = OrdemCarregamento::where('status', StatusOrdem::TARA_REALIZADA)
+            ->whereNotNull('ticket_guardian')
+            ->get();
+
+        return $ordens->filter(fn ($o) => $this->sincronizarFila($o))->count();
     }
 
     /**

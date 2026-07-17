@@ -2,6 +2,7 @@
 
 namespace App\Domain\Integrations\Guardian\Adapters;
 
+use App\Domain\Integrations\Guardian\DTOs\FilaGuardianDTO;
 use App\Domain\Integrations\Guardian\DTOs\TicketGuardianDTO;
 use Illuminate\Validation\ValidationException;
 
@@ -52,6 +53,47 @@ class GuardianMockAdapter implements GuardianAdapterInterface
             pesoLiquido: $data['peso_liquido'],
             dataEntrada: $data['data_entrada'],
             dataSaida: $data['data_saida'],
+        );
+    }
+
+    /** Mock: ticket 0000001 aparece liberado na fila; qualquer outro fica "aguardando". */
+    public function consultarFila(string $ticket, ?string $placa = null): FilaGuardianDTO
+    {
+        if (!$this->ticketExiste($ticket)) {
+            return new FilaGuardianDTO(
+                ticket: $ticket,
+                erro: 1,
+                descricao: "Ticket {$ticket} não encontrado na fila (mock).",
+                placa: null,
+                posicao: null,
+                estado: null,
+                estadoDescricao: null,
+                filaId: null,
+                filaCodigo: null,
+                filaNome: null,
+                filaMensagem: null,
+                mensagemUsuario: null,
+                dataAtualizacao: null,
+            );
+        }
+
+        $data = $this->tickets[$ticket];
+        $liberado = $ticket === '0000001';
+
+        return new FilaGuardianDTO(
+            ticket: $ticket,
+            erro: 0,
+            descricao: 'Veículo localizado na fila com sucesso! (mock)',
+            placa: $data['placa'],
+            posicao: $liberado ? 1 : 5,
+            estado: $liberado ? '305060' : '305050',
+            estadoDescricao: $liberado ? 'Liberado' : 'Aguardando',
+            filaId: 3,
+            filaCodigo: 'CARREGAMENTO',
+            filaNome: 'PROCESSO DE CARREGAMENTO',
+            filaMensagem: null,
+            mensagemUsuario: null,
+            dataAtualizacao: now()->toIso8601String(),
         );
     }
 

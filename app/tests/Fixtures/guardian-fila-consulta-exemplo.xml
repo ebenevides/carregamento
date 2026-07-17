@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Fixture anonimizada a partir de uma resposta real de produção do Guardian/Prix
+    (método FilaConsultaVeiculo — consulta posição/estado do veículo na fila).
+    CPF, nome de motorista/emissor/transportadora e placa foram trocados por
+    valores fictícios; sequenciais/códigos internos e estrutura do XML mantidos.
+    Ver GuardianSoapAdapter::mapearFila() e
+    tests/Unit/GuardianSoapAdapterFilaTest.php.
+-->
+<VORetornoFilaConsulta>
+    <Erro>0</Erro>
+    <Descricao>Veículo localizado na fila com sucesso!</Descricao>
+    <FilaTicketEntidade>
+        <Posicao>5</Posicao>
+        <Data>2026-07-17T15:09:20.730</Data>
+        <Estado>305060</Estado>
+        <EstadoDescricao>Liberado</EstadoDescricao>
+        <Fila>3</Fila>
+        <CadastroFilaEntidade>
+            <Codigo>CARREGAMENTO</Codigo>
+            <Nome>PROCESSO DE CARREGAMENTO</Nome>
+            <NumeroTicketsLiberadosAutomaticamente>999</NumeroTicketsLiberadosAutomaticamente>
+            <Estado>1</Estado>
+            <EstadoDescricao>ATIVADO</EstadoDescricao>
+            <Mensagem/>
+        </CadastroFilaEntidade>
+        <TicketSequencial>201121</TicketSequencial>
+        <TicketEntidade>
+            <Sequencial>201121</Sequencial>
+            <Codigo>0201121</Codigo>
+            <PlacaCarreta>TST3C33</PlacaCarreta>
+            <Transportadora>
+                <Codigo>011821</Codigo>
+                <Descricao>TRANSPORTADORA TESTE 2 LTDA</Descricao>
+                <RazaoSocial>TRANSPORTADORA TESTE 2 LTDA</RazaoSocial>
+            </Transportadora>
+            <Emissor>
+                <Codigo>008531</Codigo>
+                <Descricao>CLIENTE TESTE PAVIMENTACAO LTDA</Descricao>
+                <RazaoSocial>CLIENTE TESTE PAVIMENTACAO LTDA</RazaoSocial>
+            </Emissor>
+            <Observacao>UB-2</Observacao>
+            <DataPesagem>2026-07-17T15:10:30.617</DataPesagem>
+            <Estado>2</Estado>
+        </TicketEntidade>
+        <DataAtualizacao>2026-07-17T15:09:20.730</DataAtualizacao>
+        <MensagemUsuario/>
+    </FilaTicketEntidade>
+</VORetornoFilaConsulta>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SincronizarFilaGuardianJob;
 use App\Jobs\SincronizarPesagensGuardianJob;
 use App\Jobs\SincronizarTarasGuardianJob;
 use Illuminate\Foundation\Inspiring;
@@ -18,4 +19,10 @@ Schedule::job(new SincronizarTarasGuardianJob)->everyTwoMinutes()
 // Guardian: sincronizar pesagens a cada 2 minutos (ordens AGUARDANDO_PESAGEM_FINAL)
 Schedule::job(new SincronizarPesagensGuardianJob)->everyTwoMinutes()
     ->name('guardian:sync-pesagens')
+    ->withoutOverlapping();
+
+// Guardian: sincronizar fila a cada 2 minutos (ordens TARA_REALIZADA liberadas na fila do Guardian
+// entram em AGUARDANDO_CARREGAMENTO — ver DT-014)
+Schedule::job(new SincronizarFilaGuardianJob)->everyTwoMinutes()
+    ->name('guardian:sync-fila')
     ->withoutOverlapping();
