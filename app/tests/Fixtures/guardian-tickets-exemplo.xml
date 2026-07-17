@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Fixture anonimizada a partir de uma resposta real de produção do Guardian/Prix
+    (método ExportaTicketsMarcadosResponse — mesmo schema de <Ticket> usado por
+    ExportaTicketParametro, que é o que GuardianSoapAdapter::consultarTicket() chama).
+    CPF, nomes de motorista/emissor/transportadora e placas foram trocados por
+    valores fictícios; sequenciais/códigos internos e a estrutura do XML foram
+    mantidos como no original. Ver docs/integracao-guardian.md e Etapa 2.5 do
+    roadmap (docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md).
+
+    Casos de borda que este fixture cobre, não presentes na massa sintética do
+    TestDataSeeder:
+      - Ticket 201020: <Tara> na raiz vem xsi:nil="true" — o adapter precisa
+        derivar a tara via TipoOperacaoCodigo=2 (Pesagem Inicial), não do campo raiz.
+      - CamposAdicionais duplicados em dois blocos (Numero 1-4 e 1001-1004, mesmo
+        valor) — extrairCamposAdicionais() deve ignorar os 1001+ (usa só 1-4).
+      - Ticket 201021: Estado=10 (aguardando), diferente do 201020 (Estado=3,
+        concluído) — dois estados de ticket distintos.
+-->
+<ExportaTicketsMarcadosResult>
+    <Ticket>
+        <Sequencial>201020</Sequencial>
+        <Codigo>0201020</Codigo>
+        <PlacaCarreta>TST1A11</PlacaCarreta>
+        <Transportadora>
+            <Codigo>012138</Codigo>
+            <Descricao>TRANSPORTADORA TESTE LTDA</Descricao>
+            <RazaoSocial>TRANSPORTADORA TESTE LTDA</RazaoSocial>
+        </Transportadora>
+        <Emissor>
+            <Codigo>017037</Codigo>
+            <Descricao>CLIENTE TESTE CONCRETO LTDA</Descricao>
+            <RazaoSocial>CLIENTE TESTE CONCRETO LTDA</RazaoSocial>
+        </Emissor>
+        <Observacao>UB-2</Observacao>
+        <DataPesagem>2026-07-17T11:25:11.470</DataPesagem>
+        <DataCriacao>2026-07-17T10:42:53.433</DataCriacao>
+        <CamposAdicionais>
+            <CampoAdicionalTicket>
+                <Numero>1</Numero>
+                <Valor>32.00</Valor>
+                <Codigo>488265</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>2</Numero>
+                <Valor>UB-2</Valor>
+                <Codigo>488266</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>3</Numero>
+                <Valor>atendente-teste</Valor>
+                <Codigo>488267</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>4</Numero>
+                <Valor>097488</Valor>
+                <Codigo>488268</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>1001</Numero>
+                <Valor>32.00</Valor>
+                <Codigo>488269</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>1002</Numero>
+                <Valor>UB-2</Valor>
+                <Codigo>488270</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>1003</Numero>
+                <Valor>atendente-teste</Valor>
+                <Codigo>488271</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>1004</Numero>
+                <Valor>097488</Valor>
+                <Codigo>488272</Codigo>
+            </CampoAdicionalTicket>
+        </CamposAdicionais>
+        <TagAssociado>E28068940000000000000001</TagAssociado>
+        <Estado>3</Estado>
+        <OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548525</Sequencial>
+                <TicketSequencial>201020</TicketSequencial>
+                <PlacaVeiculo>TST1A11</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>43</Codigo>
+                    <Cpf>111.111.111-11</Cpf>
+                    <Nome>JOAO DA SILVA TESTE</Nome>
+                </Motorista>
+                <Peso>0.00000</Peso>
+                <TipoOperacaoCodigo>1</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pré-Cadastro</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548530</Sequencial>
+                <TicketSequencial>201020</TicketSequencial>
+                <PlacaVeiculo>TST1A11</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>43</Codigo>
+                    <Cpf>111.111.111-11</Cpf>
+                    <Nome>JOAO DA SILVA TESTE</Nome>
+                </Motorista>
+                <Peso>0.00000</Peso>
+                <TipoOperacaoCodigo>5</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Acesso</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548532</Sequencial>
+                <TicketSequencial>201020</TicketSequencial>
+                <PlacaVeiculo>TST1A11</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>43</Codigo>
+                    <Cpf>111.111.111-11</Cpf>
+                    <Nome>JOAO DA SILVA TESTE</Nome>
+                </Motorista>
+                <Peso>18890.00000</Peso>
+                <TipoOperacaoCodigo>2</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pesagem Inicial</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548570</Sequencial>
+                <TicketSequencial>201020</TicketSequencial>
+                <PlacaVeiculo>TST1A11</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>43</Codigo>
+                    <Cpf>111.111.111-11</Cpf>
+                    <Nome>JOAO DA SILVA TESTE</Nome>
+                </Motorista>
+                <Peso>50940.00000</Peso>
+                <PesoLiqObtido>32050.00000</PesoLiqObtido>
+                <TipoOperacaoCodigo>3</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pesagem Final</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+        </OperacaoTicket>
+        <PesoBruto>50940</PesoBruto>
+        <Tara xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+    </Ticket>
+    <Ticket>
+        <Sequencial>201021</Sequencial>
+        <Codigo>0201021</Codigo>
+        <PlacaCarreta>TST2B22</PlacaCarreta>
+        <Transportadora>
+            <Codigo>0</Codigo>
+            <Descricao>O PROPRIO CLIENTE</Descricao>
+            <RazaoSocial>O PROPRIO CLIENTE</RazaoSocial>
+        </Transportadora>
+        <Emissor>
+            <Codigo>011518</Codigo>
+            <Descricao>MOTORISTA TESTE AUTONOMO</Descricao>
+            <RazaoSocial>MOTORISTA TESTE AUTONOMO</RazaoSocial>
+        </Emissor>
+        <Observacao>UB-2</Observacao>
+        <DataPesagem>2026-07-17T11:22:21.863</DataPesagem>
+        <DataCriacao>2026-07-17T10:44:29.370</DataCriacao>
+        <CamposAdicionais>
+            <CampoAdicionalTicket>
+                <Numero>1</Numero>
+                <Valor>13.00</Valor>
+                <Codigo>488273</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>2</Numero>
+                <Valor>UB-2</Valor>
+                <Codigo>488274</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>3</Numero>
+                <Valor>atendente-teste</Valor>
+                <Codigo>488275</Codigo>
+            </CampoAdicionalTicket>
+            <CampoAdicionalTicket>
+                <Numero>4</Numero>
+                <Valor>097879</Valor>
+                <Codigo>488276</Codigo>
+            </CampoAdicionalTicket>
+        </CamposAdicionais>
+        <TagAssociado>E28068940000000000000002</TagAssociado>
+        <Estado>10</Estado>
+        <OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548529</Sequencial>
+                <TicketSequencial>201021</TicketSequencial>
+                <PlacaVeiculo>TST2B22</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>000954</Codigo>
+                    <Cpf>222.222.222-22</Cpf>
+                    <Nome>MARIA TESTE SANTOS</Nome>
+                </Motorista>
+                <Peso>0.00000</Peso>
+                <TipoOperacaoCodigo>1</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pré-Cadastro</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548536</Sequencial>
+                <TicketSequencial>201021</TicketSequencial>
+                <PlacaVeiculo>TST2B22</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>000954</Codigo>
+                    <Cpf>222.222.222-22</Cpf>
+                    <Nome>MARIA TESTE SANTOS</Nome>
+                </Motorista>
+                <Peso>9900.00000</Peso>
+                <TipoOperacaoCodigo>2</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pesagem Inicial</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+            <OperacaoTicket>
+                <Sequencial>548572</Sequencial>
+                <TicketSequencial>201021</TicketSequencial>
+                <PlacaVeiculo>TST2B22</PlacaVeiculo>
+                <Motorista>
+                    <Codigo>000954</Codigo>
+                    <Cpf>222.222.222-22</Cpf>
+                    <Nome>MARIA TESTE SANTOS</Nome>
+                </Motorista>
+                <Peso>22950.00000</Peso>
+                <PesoLiqObtido>13050.00000</PesoLiqObtido>
+                <TipoOperacaoCodigo>3</TipoOperacaoCodigo>
+                <TipoOperacaoDescricao>Pesagem Final</TipoOperacaoDescricao>
+                <Estado>1</Estado>
+            </OperacaoTicket>
+        </OperacaoTicket>
+        <PesoBruto>22950</PesoBruto>
+        <Tara xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+    </Ticket>
+</ExportaTicketsMarcadosResult>
