@@ -182,8 +182,73 @@ Ferramenta de inspeção de requests/queries/jobs/eventos para acelerar debug lo
 
 ### Impacto
 - Migration `telescope_entries` adicionada
-- Provider registrado em `bootstrap/providers.php`
+- Provider registrado em `bootstrap/providers.php`, **condicionado a `class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)`** — como o pacote é `require-dev`, um `composer install --no-dev` (imagem Docker de produção, `docker/php/Dockerfile`) não o instala; sem essa guarda o boot da aplicação quebrava inteiro nesses builds (`Class "Laravel\Telescope\TelescopeApplicationServiceProvider" not found`)
 - Painel acessível em `/telescope` somente com `APP_ENV=local` (ou usuário autorizado no gate, em outros ambientes)
 
 ### Data
-2026-07-14
+2026-07-14 (guarda de boot adicionada em correção posterior)
+
+---
+
+## DT-012 — Isolamento de ambiente de teste via `tests/bootstrap.php`
+
+### Decisão
+`phpunit.xml` não força mais `APP_ENV`/`DB_DATABASE`/etc via `<env force="true">`. Em vez disso,
+`tests/bootstrap.php` (novo `bootstrap` do PHPUnit, substitui `vendor/autoload.php` direto) escreve os valores
+de teste em `$_SERVER` antes do autoload. `DB_HOST`/`DB_PORT` continuam só em `phpunit.xml`, sem force.
+
+### Motivo
+`<env>` do PHPUnit só escreve em `$_ENV`/`putenv()`. O `Illuminate\Support\Env` do Laravel dá prioridade a
+`$_SERVER`, que dentro do container já vem populado com os valores reais de `app/.env` (via `env_file` do
+docker-compose) antes do PHPUnit sequer rodar — `force="true"` nunca vencia essa prioridade. Resultado:
+`APP_ENV` ficava `local` durante os testes (quebrando `runningUnitTests()` e gerando 419 em toda rota com CSRF)
+e `DB_DATABASE` apontava pro banco de **dev** (`carregamento`) em vez de um banco de teste isolado — que nem
+existia. `DB_HOST`/`DB_PORT` ficam de fora do force porque são os únicos valores realmente dependentes de
+contexto: dentro do container devem continuar herdando `postgres:5432` do `.env` real; rodando a partir do
+host (sem esse env já setado) caem no fallback `127.0.0.1:5433` do `docker-compose.override.yml`.
+
+### Impacto
+- Banco `carregamento_test` criado no Postgres (não existia)
+- `tests/bootstrap.php` novo, referenciado por `phpunit.xml`'s `bootstrap=`
+- 83/83 testes passando de forma isolada, sem tocar o banco de dev
+- Ver nota em `STATUS.md` sobre o banco de dev ter sido zerado e restaurado durante a investigação deste bug
+
+### Data
+2026-07-17
+
+---
+
+## DT-013 — Realtime foreground via Reverb + client Pusher-protocol manual no Flutter
+
+### Decisão
+Backend usa `laravel/reverb` (já estava no `composer.json`) com `BROADCAST_CONNECTION=reverb`, servido atrás
+do nginx via proxy em `/app/*` e `/apps/*` (sem porta extra exposta). No Flutter, `pusher_channels_flutter`
+foi removido e substituído por um client mínimo do protocolo Pusher escrito à mão sobre `web_socket_channel`
+(`mobile/lib/core/realtime/realtime_client.dart`).
+
+### Motivo
+`pusher_channels_flutter` (2.4.0, e confirmado até a `master` do repo oficial) só conecta em Pusher Cloud —
+seu `init()` aceita `cluster`, não um host/porta customizado, e o plugin nativo Android não expõe outro jeito
+de apontar pra um servidor self-hosted como o Reverb. Como o Reverb fala exatamente o protocolo Pusher sobre
+WebSocket puro (`pusher:connection_established`, `pusher:subscribe` com `auth` de canal privado, etc.), um
+client manual sobre `web_socket_channel` (dependência já declarada, também não usada até então) resolve sem
+trocar de pacote por outro de fornecedor desconhecido.
+
+`REVERB_HOST` (usado pelo backend pra publicar eventos, via rede interna do Docker — `reverb:8080`) foi
+desacoplado de `VITE_REVERB_HOST`/`VITE_REVERB_PORT` (usado pelo painel Vue, aponta pro host:porta externos,
+ex.: `localhost:5405` local). Antes eram a mesma variável interpolada (`VITE_REVERB_HOST="${REVERB_HOST}"`),
+o que não podia satisfazer os dois lados ao mesmo tempo — um serve tráfego container-a-container, o outro
+precisa ser alcançável de fora.
+
+### Impacto
+- `docker-compose.yml`/`.override.yml`: serviço `reverb` novo
+- `docker/nginx/default.conf`: proxy `/app/*`,`/apps/*` → `reverb:8080` com upgrade de WebSocket
+- `.dockerignore` criado (não existia — bloqueava rebuild por causa de `app/node_modules`)
+- `mobile/pubspec.yaml`: `pusher_channels_flutter` removido
+- `mobile/lib/core/realtime/realtime_client.dart` novo — reconexão simples (1 retry, sem backoff), sem
+  suporte a push nativo (FCM/APNs) — app em background/fechado não recebe notificação, só foreground
+- `chat_provider.dart` e `motorista_provider.dart` assinam canais privados e recarregam dados on-event, em
+  vez de só substituir o estado localmente (mais simples, evita lógica de merge/dedupe)
+
+### Data
+2026-07-17

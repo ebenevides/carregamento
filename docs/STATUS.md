@@ -9,17 +9,23 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - Ação Rejeitar do operador (DIVERGENCIA, nunca CANCELADO)
 - RN-010: ações de fila restritas ao ponto do operador
 - Chat por ordem (model, endpoints, evento broadcast)
-- Broadcast privado via Reverb/Sanctum (Broadcast::routes + channels)
-- Notificação individual ao motorista via PrivateChannel
+- Broadcast privado via Reverb/Sanctum (Broadcast::routes + channels) — **scaffold de backend apenas**; ver
+  nota "Realtime não está ligado ponta a ponta" abaixo
+- Notificação individual ao motorista via PrivateChannel — **idem, evento existe mas não é consumido**
 - 12 novos testes de feature (83 total) + roteiro de homologação
 
 ## Última etapa concluída
-**Etapa 15.1 e 15.2** — 7 novos testes (ResolverMotoristaAction, RN-010 concluir/liberar), RN-010 implementado em `concluir`/`liberarParaFila`, roteiro de homologação em `docs/homologacao-ponta-a-ponta.md`. Total: **83 testes, 158 assertions.**
+**Etapa 2.5 (pós-Fase 15)** — fixture anonimizada de ticket real Guardian (`tests/Fixtures/guardian-tickets-exemplo.xml`)
+com 4 novos testes travando `GuardianSoapAdapter::mapearTicket()` contra o dado real (`Tara` raiz nil,
+`CamposAdicionais` duplicado, dois `Estado` distintos); `docs/integracao-guardian.md` atualizado com as nuances
+confirmadas. Total: **87 testes, 173 assertions.**
+
+Anteriormente: **Etapa 15.1 e 15.2** — 7 novos testes (ResolverMotoristaAction, RN-010 concluir/liberar), RN-010
+implementado em `concluir`/`liberarParaFila`, roteiro de homologação em `docs/homologacao-ponta-a-ponta.md`.
 
 ## Próximas etapas
 - Fase 11 / Etapa 11.1: migration `documento` em `users` + `motorista_user_id` em
   `ordens_carregamento` (ver `docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md`)
-- Investigar 14 testes falhando por `419` (CSRF/sessão) em `php artisan test` — ver Pendências abaixo
 - Configurar PostgreSQL + Redis em produção
 - Definir URL/credenciais Protheus real
 
@@ -82,7 +88,14 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 ## Pendências críticas para produção
 - [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
 - [x] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
-- [x] ~~14 testes falhando com `419` (CSRF/sessão)~~ — causa real: Vite manifest ausente; `npm run build` nunca rodado. Fix: Dockerfile reordenado (composer-builder antes de node-builder) + `npm run build` executado. **60/60 passando.**
+- [x] ~~14 testes falhando com `419` (CSRF/sessão)~~ — causa real (reaberta e investigada de novo em 2026-07-17,
+  a entrada anterior sobre Vite manifest era outra causa já corrigida): `phpunit.xml` usava `<env force="true">`,
+  que só escreve em `$_ENV`/`putenv()` — o `Env` do Laravel prioriza `$_SERVER`, já populado com `APP_ENV=local`
+  (e `DB_DATABASE=carregamento`, o banco de **dev**) pelo `env_file: app/.env` do container antes do PHPUnit
+  rodar. Fix: `tests/bootstrap.php` força via `$_SERVER` antes do autoload; ver DT-012. **83/83 passando.**
+- [x] ~~Telescope quebrava boot em build `--no-dev`~~ — `bootstrap/providers.php` registrava o provider sem
+  checar se o pacote (`require-dev`) estava instalado; qualquer imagem Docker (`--no-dev`) não subia. Fix:
+  guarda por `class_exists`. Ver DT-011 (atualizado).
 - [ ] Configurar `PROTHEUS_BASE_URL` + credenciais
 - [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
 - [ ] Testar em emulador/dispositivo real (não só via API): badge de não lidas do chat, indicador
@@ -92,6 +105,38 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
       falta de Flutter SDK no ambiente de teste atual.
 - [ ] Definir regra de negócio pra motorista com múltiplas ordens ativas simultâneas (gap
       encontrado em teste — ver `docs/regras-negocio.md`, seção "Gaps identificados em testes").
+
+## Realtime foreground ligado ponta a ponta (2026-07-17)
+Chat e "chegou sua vez" do motorista agora funcionam em tempo real com o app em foreground. O que foi feito,
+depois de auditar e achar que nada disso existia de fato (só scaffold de backend + pacote client incompatível):
+
+- `BROADCAST_CONNECTION=reverb` (era `log`) em `app/.env`.
+- Serviço `reverb` novo em `docker-compose.yml`/`.override.yml` (`php artisan reverb:start`, mesma imagem do
+  `app`/`horizon`).
+- `docker/nginx/default.conf` faz proxy de `/app/*` (handshake WebSocket) e `/apps/*` (API HTTP do Reverb,
+  usada pelo próprio backend pra publicar) pra `reverb:8080` — sem porta extra exposta a clientes.
+- `REVERB_HOST=reverb` (hostname interno docker, usado pelo backend pra publicar) desacoplado de
+  `VITE_REVERB_HOST`/`PORT` (usado pelo painel Vue, aponta pro host:porta externos) — antes eram a mesma
+  variável interpolada, o que não podia funcionar pros dois lados ao mesmo tempo.
+- `pusher_channels_flutter` **removido** do app Flutter: não suporta host self-hosted (só fala com Pusher
+  Cloud via `cluster`, confirmado até a branch `master` do pacote). `web_socket_channel` (já declarado, não
+  usado) virou a base de um client mínimo do protocolo Pusher em
+  `mobile/lib/core/realtime/realtime_client.dart` — conecta, autentica canal privado via Sanctum
+  (`/broadcasting/auth`), assina, reconecta 1x em caso de queda. Ligado em `chat_provider.dart`
+  (`private-ordem.{id}.chat`) e `motorista_provider.dart` (`private-App.Models.User.{id}`).
+- `.dockerignore` criado (não existia) — `app/node_modules` sem isso quebrava rebuild do BuildKit com um
+  symlink.
+- Testado ponta a ponta com script Node (WS real + REST real): mensagem enviada por HTTP chegou via
+  WebSocket no mesmo segundo.
+
+**Sem push nativo (FCM/APNs)** — app fechado/background não notifica. Ver DT-013.
+
+## Atenção — banco de dev foi zerado e restaurado em 2026-07-17
+Durante a investigação acima, testes com `RefreshDatabase` rodaram por engano contra o banco `carregamento`
+(dev) antes do bug ser identificado — o banco `carregamento_test` isolado não existia. Dados perdidos;
+restaurados via `php artisan db:seed --class=TestDataSeeder` (só continha massa de teste, sem cadastro manual
+relevante, confirmado com o time). Banco `carregamento_test` criado no Postgres para isolar testes daqui pra
+frente.
 
 ## Última atualização
 2026-07-15

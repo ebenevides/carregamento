@@ -304,3 +304,20 @@ $resposta = $client->CancelaUltimaOperacaoAtivaGuardian([
 `TicketCompletoObtem` — retorna `VOTicketIntegracao` (pesos como strings BR, parse necessário)
 
 **Alternativa [INTERFACE]**: `ExportaTicketParametro` com `produto='WS G'` + `codigo='01'` → retorna `ArrayOfTicket` (campos `decimal`, sem parse)
+
+### Nuances confirmadas em ticket real de produção (2026-07)
+
+Fixture anonimizada em `tests/Fixtures/guardian-tickets-exemplo.xml` (Etapa 2.5 do roadmap), coberta por
+`tests/Unit/GuardianSoapAdapterMapeamentoTest.php`:
+
+- **`Ticket.Tara` raiz vem `xsi:nil="true"`** na prática — confirma a nota acima ("OBSOLETO"). A tara real
+  precisa ser derivada de `OperacaoTicket` com `TipoOperacaoCodigo=2` (Pesagem Inicial), como
+  `GuardianSoapAdapter::mapearTicket()` já faz.
+- **`CamposAdicionais` pode vir duplicado** em dois blocos com os mesmos valores: `Numero` 1-4 (o mapeamento
+  confirmado — peso doc/unidade/atendente/pedido) e 1001-1004 (espelhando 1-4). `extrairCamposAdicionais()` já
+  ignora tudo fora de 1-4 corretamente.
+- **`Observacao` da raiz do ticket também carrega a unidade** (ex.: `"UB-2"`), igual ao `CamposAdicionais`
+  `Numero=2` — redundante no dado real, mas não lido pelo adapter hoje (usa só `CamposAdicionais`).
+- Ticket com `Estado=10` (aguardando) e `Estado=3` (concluído) confirmam pelo menos dois valores distintos de
+  `Ticket.Estado` — o adapter trata `Estado` como string opaca (`$dto->status`), sem mapear para um enum
+  próprio ainda.

@@ -144,6 +144,42 @@ Libera ordem para faturamento.
 
 ---
 
+## Chat (por ordem)
+
+Chat é escopado por ordem — cada `OrdemCarregamento` tem seu próprio canal, não há chat perfil-a-perfil livre. Acesso via `OrdemCarregamento::usuarioPodeAcessar($user)` (operador do ponto, motorista vinculado, expedição/admin).
+
+### `GET /api/v1/ordens-carregamento/{ordemCarregamento}/mensagens`
+
+Lista mensagens da ordem, paginado (50/pp), mais antiga → recente, com `remetente:id,name`.
+- `403` se usuário não tem acesso à ordem.
+
+### `POST /api/v1/ordens-carregamento/{ordemCarregamento}/mensagens`
+
+Envia mensagem no chat da ordem.
+- Body: `mensagem` (string, obrigatório, max:1000)
+- `403` se usuário não tem acesso à ordem
+- `422` se a ordem já está `FINALIZADO`/`CANCELADO` (`status->estaAtivo()` falso)
+- Dispara evento `MensagemEnviada` (broadcast) ao criar
+- Resposta `201` com a mensagem criada
+
+### Broadcast — canal privado `ordem.{ordemId}.chat`
+
+Autenticado via Sanctum (`routes/channels.php`), autorizado só se `OrdemCarregamento::usuarioPodeAcessar($user)`. Evento `mensagem.enviada` (Reverb), payload:
+```json
+{
+    "id": 1,
+    "ordem_id": "uuid-da-ordem",
+    "remetente_id": 5,
+    "perfil_remetente": "OPERADOR",
+    "mensagem": "Chegando na bica 1",
+    "created_at": "2026-07-17T10:42:52.973000Z"
+}
+```
+
+Motorista também recebe notificação individual no canal privado `App.Models.User.{id}` (evento `ordem.status.alterado`). Realtime funciona em foreground via Reverb (ver DT-013); sem push nativo (FCM/APNs) — app em background/fechado não notifica.
+
+---
+
 ## Integrações
 
 ### `GET /api/v1/integracoes/protheus/pedidos/{numero}`
