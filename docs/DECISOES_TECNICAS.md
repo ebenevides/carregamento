@@ -281,3 +281,29 @@ Automatizar reduz etapa manual redundante quando o Guardian já sinaliza que o v
 
 ### Data
 2026-07-17
+
+---
+
+## DT-015 — Fix `config/inertia.php` (schema incompatível com a versão instalada)
+
+### Decisão
+Reescrito pra bater com o schema real do `inertiajs/inertia-laravel` v2.0.24 instalado: chaves `page_paths`/
+`page_extensions`/`ensure_pages_exist` na raiz (não aninhadas em `pages.*`), `testing.page_paths`/
+`testing.page_extensions`, path corrigido pra `resource_path('js/Pages')` (`P` maiúsculo, batendo com a
+estrutura real em `resources/js/Pages/`). Removida a chave `expose_shared_prop_keys` (não existe na v2.0.24,
+não usada em nenhum lugar do código — provavelmente copiada de doc/versão diferente).
+
+### Motivo
+`config/inertia.php` do repo usava chaves de um schema que essa versão do pacote não lê
+(`ServiceProvider::register()` acessa `config('inertia.page_paths')`/`config('inertia.testing.page_paths')`
+diretamente). Como `pages.ensure_pages_exist` estava `false`, o app rodava normal — só quebrava
+(`TypeError` em `FileViewFinder::__construct()`) ao chamar `assertInertia()` nos testes, o que nunca tinha
+acontecido antes (nenhum teste do repo usava essa assertion até o teste do painel Guardian/fila).
+
+### Impacto
+- `config/inertia.php` reescrito
+- `tests/Feature/IntegracaoGuardianFilaWebTest.php` é o primeiro teste do repo a usar `assertInertia()` —
+  serve de guarda de regressão pra esse bug
+
+### Data
+2026-07-17

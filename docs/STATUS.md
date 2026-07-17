@@ -94,8 +94,14 @@ Anteriormente: realtime foreground (Reverb) ligado ponta a ponta — ver seção
 - `GuardianService::sincronizarFila()`/`sincronizarTodasFilas()` + `SincronizarFilaGuardianJob`
   (`everyTwoMinutes()`, mesmo padrão das outras sincronizações Guardian): ordens `TARA_REALIZADA` liberadas
   na fila do Guardian entram automaticamente em `AGUARDANDO_CARREGAMENTO` via `EntrarNaFilaAction`. Decisão
-  confirmada com o usuário — ver DT-014. 5 testes novos (95 total).
-- Ainda não aparece no dashboard (não pedido nesta rodada)
+  confirmada com o usuário — ver DT-014. 5 testes novos.
+- Painel `Integrações Guardian` (`/integracoes/guardian`): seção "Aguardando fila" com botão de sync manual
+  por ordem, card de contagem, e busca manual de ticket enriquecida com posição/estado da fila.
+  `sincronizarTodas()` agora inclui fila. 1 teste web novo (96 total).
+- **Achado de bugfix junto**: `config/inertia.php` usava schema errado (`pages.paths` em vez de
+  `page_paths`/`testing.page_paths`, que é o que a versão instalada — `inertiajs/inertia-laravel` v2.0.24 —
+  realmente lê) — quebrava `assertInertia()` em qualquer teste, nunca detectado porque nenhum teste tinha
+  usado essa assertion antes.
 
 ## Pendências críticas para produção
 - [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`

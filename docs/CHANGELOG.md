@@ -15,8 +15,11 @@ Formato: [Semântico](https://semver.org/). Datas no formato YYYY-MM-DD.
   endpoint `GET /api/v1/integracoes/guardian/fila/{ticket}`.
 - `SincronizarFilaGuardianJob` (2min): ordens `TARA_REALIZADA` liberadas na fila do Guardian entram
   automaticamente em `AGUARDANDO_CARREGAMENTO` via `EntrarNaFilaAction` (DT-014).
+- Painel `Integrações Guardian`: seção de fila com sync manual, card de contagem, ticket search enriquecido.
 
 ### Fixed
+- `config/inertia.php` usava schema de chaves incompatível com a versão instalada do pacote
+  (`inertiajs/inertia-laravel` v2.0.24) — quebrava `assertInertia()` em qualquer teste (DT-015).
 - `bootstrap/providers.php` quebrava o boot em qualquer build `composer install --no-dev` (Docker de produção)
   por registrar o provider do Telescope sem checar se o pacote `require-dev` estava instalado (DT-011).
 - 14 testes falhando com `419`: `phpunit.xml` não conseguia forçar `APP_ENV`/`DB_DATABASE` de teste (o `Env`
