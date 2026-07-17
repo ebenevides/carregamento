@@ -11,6 +11,10 @@ Formato: [Semântico](https://semver.org/). Datas no formato YYYY-MM-DD.
 - `docs/integracao-guardian.md` com WSDL, protocolo SOAP e detalhes confirmados.
 - Decisões técnicas DT-001 a DT-008.
 - `docs/api.md`: seção de endpoints de chat (Fase 15, doc-debt fechado).
+- Guardian: `consultarFila()` (método SOAP `FilaConsultaVeiculo`) — posição/estado do veículo na fila,
+  endpoint `GET /api/v1/integracoes/guardian/fila/{ticket}`.
+- `SincronizarFilaGuardianJob` (2min): ordens `TARA_REALIZADA` liberadas na fila do Guardian entram
+  automaticamente em `AGUARDANDO_CARREGAMENTO` via `EntrarNaFilaAction` (DT-014).
 
 ### Fixed
 - `bootstrap/providers.php` quebrava o boot em qualquer build `composer install --no-dev` (Docker de produção)

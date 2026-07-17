@@ -252,3 +252,32 @@ precisa ser alcançável de fora.
 
 ### Data
 2026-07-17
+
+---
+
+## DT-014 — Fila do Guardian libera ordem automaticamente (TARA_REALIZADA → AGUARDANDO_CARREGAMENTO)
+
+### Decisão
+`GuardianService::sincronizarFila()` consulta `FilaConsultaVeiculo` pra ordens em `TARA_REALIZADA` com
+`ticket_guardian`; quando o Guardian reporta o veículo liberado na fila dele (`FilaGuardianDTO::liberado()`),
+a ordem entra na nossa fila de carregamento via `EntrarNaFilaAction` (mesma ação/validação do fluxo manual de
+expedição — RN-001/002/003/005), origem `OrigemEvento::GUARDIAN`. Job `SincronizarFilaGuardianJob`,
+`everyTwoMinutes()`, mesmo padrão de `SincronizarTarasGuardianJob`/`SincronizarPesagensGuardianJob`.
+
+### Motivo
+Decisão de produto confirmada com o usuário: a fila do Guardian é o gate físico antes do caminhão poder
+entrar na fila de carregamento do sistema — antes disso a transição era só manual (ação da expedição).
+Automatizar reduz etapa manual redundante quando o Guardian já sinaliza que o veículo está liberado.
+
+### Impacto
+- `GuardianAdapterInterface::consultarFila()` + `FilaGuardianDTO` novos (SOAP real via `FilaConsultaVeiculo`
+  — método sem os parâmetros de auth `produto`/`codigo` que os demais métodos [INTERFACE] exigem — e mock)
+- `GuardianService::sincronizarFila()`/`sincronizarTodasFilas()`, `SincronizarFilaGuardianJob`
+- Endpoint `GET /api/v1/integracoes/guardian/fila/{ticket}` pra consulta manual/dashboard
+- `liberado()` usa heurística por `EstadoDescricao` (string, case-insensitive) — Guardian não documenta enum
+  oficial de códigos de estado da fila; só `305060`/`"Liberado"` confirmado até agora
+- Reaproveita `EntrarNaFilaAction` sem alterações — se a ordem não estiver apta (RN-003 pilha sem produto,
+  RN-005 divergência aberta), a exceção é capturada e logada, ordem fica em `TARA_REALIZADA` pro próximo ciclo
+
+### Data
+2026-07-17

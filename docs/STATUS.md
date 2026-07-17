@@ -9,19 +9,19 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - Ação Rejeitar do operador (DIVERGENCIA, nunca CANCELADO)
 - RN-010: ações de fila restritas ao ponto do operador
 - Chat por ordem (model, endpoints, evento broadcast)
-- Broadcast privado via Reverb/Sanctum (Broadcast::routes + channels) — **scaffold de backend apenas**; ver
-  nota "Realtime não está ligado ponta a ponta" abaixo
-- Notificação individual ao motorista via PrivateChannel — **idem, evento existe mas não é consumido**
+- Broadcast privado via Reverb/Sanctum, ligado ponta a ponta (foreground) — ver seção "Realtime foreground
+  ligado ponta a ponta" abaixo
+- Notificação individual ao motorista via PrivateChannel — idem, consumida pelo app (`motorista_provider.dart`)
 - 12 novos testes de feature (83 total) + roteiro de homologação
 
 ## Última etapa concluída
-**Etapa 2.5 (pós-Fase 15)** — fixture anonimizada de ticket real Guardian (`tests/Fixtures/guardian-tickets-exemplo.xml`)
-com 4 novos testes travando `GuardianSoapAdapter::mapearTicket()` contra o dado real (`Tara` raiz nil,
-`CamposAdicionais` duplicado, dois `Estado` distintos); `docs/integracao-guardian.md` atualizado com as nuances
-confirmadas. Total: **87 testes, 173 assertions.**
+**Guardian — fila libera ordem automaticamente** — `consultarFila()`/`FilaGuardianDTO`, endpoint de consulta,
+job `SincronizarFilaGuardianJob` (2min) liberando `TARA_REALIZADA` → `AGUARDANDO_CARREGAMENTO` via
+`EntrarNaFilaAction` quando o Guardian sinaliza veículo liberado na fila dele. Ver DT-014. 8 testes novos.
+Total: **95 testes, 194 assertions.**
 
-Anteriormente: **Etapa 15.1 e 15.2** — 7 novos testes (ResolverMotoristaAction, RN-010 concluir/liberar), RN-010
-implementado em `concluir`/`liberarParaFila`, roteiro de homologação em `docs/homologacao-ponta-a-ponta.md`.
+Anteriormente: realtime foreground (Reverb) ligado ponta a ponta — ver seção própria abaixo. Antes disso,
+**Etapa 2.5** — fixture anonimizada de ticket real Guardian com 4 testes travando `GuardianSoapAdapter::mapearTicket()`.
 
 ## Próximas etapas
 - Fase 11 / Etapa 11.1: migration `documento` em `users` + `motorista_user_id` em
@@ -85,6 +85,18 @@ implementado em `concluir`/`liberarParaFila`, roteiro de homologação em `docs/
 - Painel em `/telescope`, liberado por padrão só em `APP_ENV=local` (gate `viewTelescope` vazio fora disso)
 - Ver DT-011
 
+### Guardian — consulta de fila + liberação automática (FilaConsultaVeiculo)
+- `GuardianAdapterInterface::consultarFila()`, implementado em `GuardianSoapAdapter` (método SOAP real, sem
+  os params de auth `produto`/`codigo` que os outros métodos exigem) e `GuardianMockAdapter`
+- `FilaGuardianDTO`: posição, estado/descrição, dados da fila (`CadastroFilaEntidade`), `sucesso()`,
+  `liberado()` (heurística por descrição — Guardian não documenta enum de códigos de estado)
+- Endpoint `GET /api/v1/integracoes/guardian/fila/{ticket}`
+- `GuardianService::sincronizarFila()`/`sincronizarTodasFilas()` + `SincronizarFilaGuardianJob`
+  (`everyTwoMinutes()`, mesmo padrão das outras sincronizações Guardian): ordens `TARA_REALIZADA` liberadas
+  na fila do Guardian entram automaticamente em `AGUARDANDO_CARREGAMENTO` via `EntrarNaFilaAction`. Decisão
+  confirmada com o usuário — ver DT-014. 5 testes novos (95 total).
+- Ainda não aparece no dashboard (não pedido nesta rodada)
+
 ## Pendências críticas para produção
 - [x] Validar métodos SOAP reais: `new SoapClient($wsdl)->__getFunctions()`
 - [x] Ajustar nomes dos campos XML em `GuardianSoapAdapter::mapearTicket()`
@@ -139,4 +151,4 @@ relevante, confirmado com o time). Banco `carregamento_test` criado no Postgres 
 frente.
 
 ## Última atualização
-2026-07-15
+2026-07-17

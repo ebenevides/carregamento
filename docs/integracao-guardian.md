@@ -245,6 +245,34 @@ $resposta = $client->CancelaUltimaOperacaoAtivaGuardian([
 
 ---
 
+### FilaConsultaVeiculo *(posição na fila — [INTERFACE])*
+
+Diferente dos demais métodos [INTERFACE], **não leva os parâmetros de auth `produto`/`codigo`** (confirmado em
+request real de produção).
+
+```php
+$resposta = $client->FilaConsultaVeiculo([
+    'voConfiguracaoFila' => null,
+    'voDadosFila' => [
+        'TicketCodigo' => '0201121',
+        'Placa'        => 'QZX5C76',  // opcional, desempate
+        'Tag'          => '',
+    ],
+]);
+$ret = $resposta->voRetornoFila->VORetornoFilaConsulta;
+// $ret->Erro: 0 = sucesso
+// $ret->Descricao: mensagem legível
+// $ret->FilaTicketEntidade->Posicao, ->Estado, ->EstadoDescricao, ->Fila
+// $ret->FilaTicketEntidade->CadastroFilaEntidade->Codigo/Nome/Mensagem (dados da fila em si)
+// $ret->FilaTicketEntidade->TicketEntidade (Ticket completo, mesmo schema de ExportaTicketParametro)
+```
+
+`Estado`/`EstadoDescricao` da fila não têm enum oficial documentado — só um valor confirmado até agora:
+`305060` = `"Liberado"`. `GuardianSoapAdapter::mapearFila()`/`FilaGuardianDTO::liberado()` checam pela
+descrição (case-insensitive, `str_contains`), não pelo código numérico, até mapearmos mais valores.
+
+---
+
 ## PreCadastro — campos principais
 
 | Campo | Tipo | Obrig. | Descrição |

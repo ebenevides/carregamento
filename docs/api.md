@@ -190,6 +190,18 @@ Consulta pedido no Protheus.
 
 Consulta ticket no Guardian.
 
+### `GET /api/v1/integracoes/guardian/fila/{ticket}`
+
+Consulta posição/estado do veículo na fila do Guardian (método SOAP `FilaConsultaVeiculo`).
+- Query opcional: `placa` (desempate quando o Guardian tem mais de um ticket ativo pra mesma placa)
+- Resposta: `sucesso` (bool, `Erro === 0`), `posicao`, `estado`/`estado_descricao` (códigos do Guardian, não
+  documentados oficialmente — ver `docs/integracao-guardian.md`), `liberado` (bool, heurística por
+  `estado_descricao` conter "liberado"), `fila_id`/`fila_codigo`/`fila_nome`, `fila_mensagem`,
+  `mensagem_usuario`, `data_atualizacao`
+- Uso manual/dashboard. A liberação automática de status roda separada, via
+  `GuardianService::sincronizarFila()` (job `SincronizarFilaGuardianJob`, a cada 2min): ordens
+  `TARA_REALIZADA` liberadas na fila do Guardian entram em `AGUARDANDO_CARREGAMENTO` sozinhas — ver DT-014.
+
 ---
 
 ## Cadastros
