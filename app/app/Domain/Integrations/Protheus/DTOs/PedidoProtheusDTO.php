@@ -4,46 +4,55 @@ namespace App\Domain\Integrations\Protheus\DTOs;
 
 final readonly class PedidoProtheusDTO
 {
+    /** @param ItemPedidoProtheusDTO[] $itens */
     public function __construct(
-        public string $numero,
-        public string $item,
         public string $filial,
-        public string $clienteCodigo,
-        public string $clienteLoja,
-        public string $clienteNome,
-        public string $produtoCodigo,
-        public string $produtoDescricao,
-        public float $quantidade,
-        public string $unidade,
-        public ?string $contratoCodigo,
+        public string $numero,
+        public ?string $tipoPedido,
+        public ?string $emissao,
+        public ?string $condicaoPagamento,
+        public ?string $vendedor,
         public ?string $transportadoraCodigo,
         public ?string $transportadoraNome,
-        public ?string $placaVeiculo,
-        public ?string $motoristaNome,
-        public ?string $motoristaDocumento,
-        public string $statusComercial,
+        public ?string $mensagemNota,
+        public ClienteProtheusDTO $cliente,
+        public array $itens,
     ) {}
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $d): self
     {
         return new self(
-            numero: $data['numero'],
-            item: $data['item'],
-            filial: $data['filial'],
-            clienteCodigo: $data['cliente_codigo'],
-            clienteLoja: $data['cliente_loja'] ?? '01',
-            clienteNome: $data['cliente_nome'],
-            produtoCodigo: $data['produto_codigo'],
-            produtoDescricao: $data['produto_descricao'],
-            quantidade: (float) $data['quantidade'],
-            unidade: $data['unidade'] ?? 'TN',
-            contratoCodigo: $data['contrato_codigo'] ?? null,
-            transportadoraCodigo: $data['transportadora_codigo'] ?? null,
-            transportadoraNome: $data['transportadora_nome'] ?? null,
-            placaVeiculo: $data['placa_veiculo'] ?? null,
-            motoristaNome: $data['motorista_nome'] ?? null,
-            motoristaDocumento: $data['motorista_documento'] ?? null,
-            statusComercial: $data['status_comercial'] ?? 'ABERTO',
+            filial: $d['filial'],
+            numero: $d['numero'],
+            tipoPedido: $d['tipoPedido'] ?? null,
+            emissao: $d['emissao'] ?? null,
+            condicaoPagamento: $d['condicaoPagamento'] ?? null,
+            vendedor: ($d['vendedor'] ?? '') !== '' ? $d['vendedor'] : null,
+            transportadoraCodigo: ($d['codTransp'] ?? '') !== '' ? $d['codTransp'] : null,
+            transportadoraNome: ($d['transportadora'] ?? '') !== '' ? $d['transportadora'] : null,
+            mensagemNota: ($d['mensagemNota'] ?? '') !== '' ? $d['mensagemNota'] : null,
+            cliente: ClienteProtheusDTO::fromArray($d['cliente']),
+            itens: array_map(
+                fn (array $item) => ItemPedidoProtheusDTO::fromArray($item),
+                $d['itens'] ?? []
+            ),
         );
+    }
+
+    /** Busca um item pelo número (ordens_carregamento.pedido_item) */
+    public function item(string $numeroItem): ?ItemPedidoProtheusDTO
+    {
+        foreach ($this->itens as $item) {
+            if ($item->item === $numeroItem) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    public function primeiroItem(): ?ItemPedidoProtheusDTO
+    {
+        return $this->itens[0] ?? null;
     }
 }

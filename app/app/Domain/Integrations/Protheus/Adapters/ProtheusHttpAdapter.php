@@ -25,9 +25,10 @@ class ProtheusHttpAdapter implements ProtheusAdapterInterface
     public function consultarPedido(string $numero, string $filial): PedidoProtheusDTO
     {
         try {
+            // GET /api/v1/faturamento/pedidos/{filial}/{numero} — ver docs/protheus-api-pedidos.postman_collection.json
             $response = Http::withBasicAuth($this->username, $this->password)
                 ->timeout($this->timeout)
-                ->get("{$this->baseUrl}/pedidos/{$numero}", ['filial' => $filial]);
+                ->get("{$this->baseUrl}/api/v1/faturamento/pedidos/{$filial}/{$numero}");
 
             Log::info('Protheus consultarPedido', [
                 'numero' => $numero,
@@ -37,7 +38,7 @@ class ProtheusHttpAdapter implements ProtheusAdapterInterface
 
             if ($response->status() === 404) {
                 throw ValidationException::withMessages([
-                    'pedido' => "Pedido {$numero} não encontrado no Protheus.",
+                    'pedido' => "Pedido {$numero} não encontrado no Protheus (filial {$filial}).",
                 ]);
             }
 
@@ -57,7 +58,7 @@ class ProtheusHttpAdapter implements ProtheusAdapterInterface
         try {
             $response = Http::withBasicAuth($this->username, $this->password)
                 ->timeout($this->timeout)
-                ->get("{$this->baseUrl}/pedidos/{$numero}", ['filial' => $filial]);
+                ->get("{$this->baseUrl}/api/v1/faturamento/pedidos/{$filial}/{$numero}");
 
             return $response->ok();
         } catch (\Exception) {
