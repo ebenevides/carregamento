@@ -307,3 +307,44 @@ acontecido antes (nenhum teste do repo usava essa assertion até o teste do pain
 
 ### Data
 2026-07-17
+
+---
+
+## DT-016 — Contrato real do Protheus confirmado, `PedidoProtheusDTO` redesenhado
+
+### Decisão
+`PROTHEUS_BASE_URL` real: `http://protheus.britaguia.com.br:8400/rest` (HTTPREST do AppServer TOTVS — o
+`/rest` é obrigatório, sem ele cai no gateway genérico e dá 404 "HTTPREST- Error report"). Adapter chama
+`GET {base}/api/v1/faturamento/pedidos/{filial}/{numero}`, conforme
+`docs/protheus-api-pedidos.postman_collection.json`. `PedidoProtheusDTO` reescrito com `ClienteProtheusDTO`
+(aninhado), `ItemPedidoProtheusDTO[]` (pedido pode ter múltiplos itens, cada um com seu próprio
+`VeiculoProtheusDTO`/`MotoristaProtheusDTO` opcionais) — `PROTHEUS_MOCK=false` confirmado funcional contra
+produção.
+
+### Motivo
+O DTO anterior (`clienteCodigo`, `produtoCodigo`, `placaVeiculo` no nível do pedido, etc.) foi escrito antes
+de qualquer acesso real à API — campos como `placa_veiculo`/`motorista_nome` no cabeçalho do pedido **não
+existem** no contrato real; vêm aninhados dentro de cada item (`itens[].veiculo`/`itens[].motorista`), porque
+um mesmo pedido pode ser atendido por veículos/motoristas diferentes por item/entrega. `fromArray()` do DTO
+antigo teria lançado `undefined array key` na primeira chamada real (esperava `cliente_codigo` como chave
+plana; a API retorna `cliente` como objeto aninhado). Confirmado consultando produção diretamente
+(`GET /rest/api/v1/faturamento/pedidos/{filial}/{numero}` com pedido real 778975/filial 00) antes de escrever
+qualquer parsing — mesma disciplina usada pro Guardian (DT confirmar contrato > assumir).
+Descoberta de investigação: probing contra `/pedidos/{numero}` (path antigo assumido) e porta `6790`
+retornavam a página de erro genérica do TOTVS SmartClient/HTTPREST — não indicavam credencial errada, só path
+errado. Porta certa é `8400`, prefixo `/rest` obrigatório.
+
+### Impacto
+- `PedidoProtheusDTO`, `ClienteProtheusDTO` (novo), `ItemPedidoProtheusDTO` (novo), `VeiculoProtheusDTO`
+  (novo), `MotoristaProtheusDTO` (novo) em `Domain/Integrations/Protheus/DTOs/`
+- `ProtheusHttpAdapter`/`ProthousMockAdapter` atualizados pro novo shape
+- `IntegracaoController::pedidoProtheus()` (debug endpoint) atualizado
+- **Nenhuma lógica de negócio consumia o DTO antigo** (confirmado antes do redesign — só o endpoint de debug
+  ecoava os campos), então o redesign não teve efeito colateral em `CriarOrdemAction` ou fluxo de criação de
+  ordem, que ainda não usa Protheus pra nada
+- Fixture real anonimizada (`tests/Fixtures/protheus-pedido-exemplo.json`) + 4 testes novos
+- Endpoints de dashboard financeiro, contratos de parceria e incluir/alterar pedido (também documentados nos
+  Postman collections) **não implementados** — nada no código os usa ainda, fora do escopo desta etapa
+
+### Data
+2026-07-19

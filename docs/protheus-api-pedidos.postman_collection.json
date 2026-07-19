@@ -1,0 +1,624 @@
+{
+  "info": {
+    "_postman_id": "protheus-api-pedidos-v1",
+    "name": "Protheus API — Pedidos de Venda",
+    "description": "API REST de Pedidos de Venda (SC5/SA1/SC6) e Contratos de Parceria (ADA/ADB/SA1) — Protheus 12.1.2410+\n\nEndpoints:\n  GET    /api/v1/faturamento/pedidos\n  GET    /api/v1/faturamento/pedidos/:filial/:numero\n  POST   /api/v1/faturamento/pedidos\n  PUT    /api/v1/faturamento/pedidos/:filial/:numero\n  GET    /api/v1/parceria/contratos\n\nConfigure a variável {{base_url}} com o endereço do AppServer (ex: http://200.106.188.113:8402).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "description": "URL base do AppServer Protheus (sem barra final)"
+    },
+    {
+      "key": "filial",
+      "value": "01",
+      "description": "Filial padrão para testes"
+    },
+    {
+      "key": "numero",
+      "value": "000001",
+      "description": "Número do pedido para testes"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "Bearer token de autenticação (opcional)"
+    },
+    {
+      "key": "codCliente",
+      "value": "000001",
+      "description": "Código do cliente para testes de contratos de parceria"
+    },
+    {
+      "key": "numeroContrato",
+      "value": "000123",
+      "description": "Número do contrato de parceria para testes"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Listar Pedidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/faturamento/pedidos?page=1&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "faturamento", "pedidos"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Página (1-based)"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "description": "Itens por página (max 100)"
+                },
+                {
+                  "key": "filial",
+                  "value": "01",
+                  "description": "Filtro por filial",
+                  "disabled": true
+                },
+                {
+                  "key": "cliente",
+                  "value": "000001",
+                  "description": "Filtro por código do cliente",
+                  "disabled": true
+                },
+                {
+                  "key": "loja",
+                  "value": "01",
+                  "description": "Filtro por loja do cliente",
+                  "disabled": true
+                },
+                {
+                  "key": "numero",
+                  "value": "000001",
+                  "description": "Filtro por número do pedido",
+                  "disabled": true
+                },
+                {
+                  "key": "emissaoDe",
+                  "value": "20260101",
+                  "description": "Filtro data inicial (YYYYMMDD)",
+                  "disabled": true
+                },
+                {
+                  "key": "emissaoAte",
+                  "value": "20261231",
+                  "description": "Filtro data final (YYYYMMDD)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista pedidos de venda com paginação e filtros opcionais.\n\nResposta 200:\n```json\n{\n  \"hasNext\": false,\n  \"items\": [...],\n  \"remainingRecords\": 0,\n  \"total\": 5\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 OK — Listagem com paginação",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos?page=1&pageSize=20"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"hasNext\": false,\n  \"items\": [\n    {\n      \"filial\": \"01\",\n      \"numero\": \"000001\",\n      \"emissao\": \"2026-06-10\",\n      \"condicaoPagamento\": \"001\",\n      \"vendedor\": \"000001\",\n      \"transportadora\": \"\",\n      \"cliente\": \"000001\",\n      \"loja\": \"01\",\n      \"nomeCliente\": \"EMPRESA TESTE SA\",\n      \"nomeFantasia\": \"EMPRESA TESTE\",\n      \"emailCliente\": \"contato@empresa.com.br\"\n    }\n  ],\n  \"remainingRecords\": 0,\n  \"total\": 1\n}"
+            },
+            {
+              "name": "500 Erro interno",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Erro interno\",\n  \"status\": 500,\n  \"detail\": \"Mensagem de erro\",\n  \"instance\": \"/api/v1/faturamento/pedidos\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Consultar Pedido",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/faturamento/pedidos/{{filial}}/{{numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "faturamento", "pedidos", "{{filial}}", "{{numero}}"]
+            },
+            "description": "Consulta pedido completo: cabeçalho (SC5) + dados do cliente (SA1) + itens (SC6).\n\nResposta 200:\n```json\n{\n  \"filial\": \"01\",\n  \"numero\": \"000001\",\n  \"emissao\": \"2026-06-10\",\n  ...\n  \"cliente\": { \"codigo\": \"000001\", \"cgc\": \"12.345.678/0001-90\", ... },\n  \"itens\": [ { \"produto\": \"PROD001\", \"quantidade\": 10, ... } ]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 OK — Pedido completo",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos/01/000001"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"filial\": \"01\",\n  \"numero\": \"000001\",\n  \"emissao\": \"2026-06-10\",\n  \"condicaoPagamento\": \"001\",\n  \"tipo\": \"N\",\n  \"vendedor\": \"000001\",\n  \"transportadora\": \"\",\n  \"mensagemNota\": \"\",\n  \"cliente\": {\n    \"codigo\": \"000001\",\n    \"loja\": \"01\",\n    \"nome\": \"EMPRESA TESTE SA\",\n    \"nomeFantasia\": \"EMPRESA TESTE\",\n    \"cgc\": \"12.345.678/0001-90\",\n    \"inscricao\": \"123456789\",\n    \"tipo\": \"J\",\n    \"endereco\": \"RUA DAS FLORES 100\",\n    \"bairro\": \"CENTRO\",\n    \"cidade\": \"SAO PAULO\",\n    \"estado\": \"SP\",\n    \"cep\": \"01310100\",\n    \"telefone\": \"(11)3333-4444\",\n    \"email\": \"contato@empresa.com.br\"\n  },\n  \"itens\": [\n    {\n      \"item\": \"0001\",\n      \"produto\": \"PROD001\",\n      \"quantidade\": 10,\n      \"precoUnitario\": 150.00,\n      \"valorTotal\": 1500.00,\n      \"tes\": \"501\",\n      \"armazem\": \"01\",\n      \"entrega\": \"\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos/99/INEXISTENTE"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Pedido nao encontrado\",\n  \"status\": 404,\n  \"detail\": \"Pedido INEXISTENTE nao encontrado na filial 99\",\n  \"instance\": \"/api/v1/faturamento/pedidos/99/INEXISTENTE\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Incluir Pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente\": \"000001\",\n  \"loja\": \"01\",\n  \"condPagamento\": \"001\",\n  \"vendedor\": \"000001\",\n  \"transportadora\": \"\",\n  \"mensagemNota\": \"Pedido via API REST\",\n  \"itens\": [\n    {\n      \"produto\": \"PROD001\",\n      \"quantidade\": 10,\n      \"preco\": 150.00,\n      \"tes\": \"501\",\n      \"armazem\": \"01\"\n    },\n    {\n      \"produto\": \"PROD002\",\n      \"quantidade\": 5,\n      \"preco\": 200.00,\n      \"tes\": \"501\",\n      \"armazem\": \"01\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/faturamento/pedidos",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "faturamento", "pedidos"]
+            },
+            "description": "Inclui pedido via ExecAuto MATA410 (nOpc=3).\n\nCampos obrigatórios: cliente, loja, condPagamento, itens[]\nCampos obrigatórios por item: produto, quantidade, preco, tes, armazem\n\nResposta 201 em caso de sucesso."
+          },
+          "response": [
+            {
+              "name": "201 Created — Pedido incluído",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Pedido incluido com sucesso\"\n}"
+            },
+            {
+              "name": "422 Validação — Cliente não encontrado",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"validation-error\",\n  \"title\": \"Erro de validacao\",\n  \"status\": 422,\n  \"detail\": \"Cliente 999999/01 nao encontrado\",\n  \"instance\": \"/api/v1/faturamento/pedidos\"\n}"
+            },
+            {
+              "name": "422 Validação — Produto bloqueado",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"validation-error\",\n  \"title\": \"Erro de validacao\",\n  \"status\": 422,\n  \"detail\": \"Item 1: produto 'PROD999' nao encontrado ou bloqueado\",\n  \"instance\": \"/api/v1/faturamento/pedidos\"\n}"
+            },
+            {
+              "name": "422 ExecAuto — Erro de negócio MATA410",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"execauto-error\",\n  \"title\": \"Erro na inclusao do pedido\",\n  \"status\": 422,\n  \"detail\": \"Mensagem retornada pelo MATA410\",\n  \"instance\": \"/api/v1/faturamento/pedidos\"\n}"
+            },
+            {
+              "name": "400 Bad Request — JSON inválido",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"JSON invalido\",\n  \"status\": 400,\n  \"detail\": \"O corpo da requisicao nao e um JSON valido\",\n  \"instance\": \"/api/v1/faturamento/pedidos\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Alterar Pedido",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condPagamento\": \"002\",\n  \"itens\": [\n    {\n      \"produto\": \"PROD001\",\n      \"quantidade\": 20,\n      \"preco\": 145.00,\n      \"tes\": \"501\",\n      \"armazem\": \"01\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/faturamento/pedidos/{{filial}}/{{numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "faturamento", "pedidos", "{{filial}}", "{{numero}}"]
+            },
+            "description": "Altera pedido via ExecAuto MATA410 (nOpc=4).\n\nRejeita pedidos faturados (C5_NOTA preenchido) ou excluídos.\ncondPagamento é opcional (mantém o existente se omitido).\nitens[] substitui todos os itens do pedido.\n\nResposta 200 em caso de sucesso."
+          },
+          "response": [
+            {
+              "name": "200 OK — Pedido alterado",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos/01/000001"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Pedido alterado com sucesso\"\n}"
+            },
+            {
+              "name": "404 Not Found — Pedido inexistente",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos/01/999999"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Erro de validacao\",\n  \"status\": 404,\n  \"detail\": \"Pedido 999999 nao encontrado na filial 01\",\n  \"instance\": \"/api/v1/faturamento/pedidos/01/999999\"\n}"
+            },
+            {
+              "name": "409 Conflict — Pedido faturado",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/faturamento/pedidos/01/000001"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"type\": \"validation-error\",\n  \"title\": \"Erro de validacao\",\n  \"status\": 409,\n  \"detail\": \"Pedido 000001 ja faturado e nao pode ser alterado\",\n  \"instance\": \"/api/v1/faturamento/pedidos/01/000001\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contratos de Parceria",
+      "item": [
+        {
+          "name": "Listar Contratos por Cliente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/parceria/contratos?codCliente={{codCliente}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "parceria", "contratos"],
+              "query": [
+                {
+                  "key": "codCliente",
+                  "value": "{{codCliente}}",
+                  "description": "Código do cliente no Protheus (obrigatório)"
+                },
+                {
+                  "key": "loja",
+                  "value": "01",
+                  "description": "Loja do cliente",
+                  "disabled": true
+                },
+                {
+                  "key": "emissao",
+                  "value": "20260703",
+                  "description": "Data exata de emissão (YYYYMMDD)",
+                  "disabled": true
+                },
+                {
+                  "key": "emissaoDe",
+                  "value": "20260701",
+                  "description": "Data inicial de emissão (YYYYMMDD)",
+                  "disabled": true
+                },
+                {
+                  "key": "emissaoAte",
+                  "value": "20260703",
+                  "description": "Data final de emissão (YYYYMMDD)",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Página (1-based)",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100",
+                  "description": "Contratos por página (máx. 500)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista contratos de parceria (ADA) do cliente, agrupados com itens (ADB) e dados do cliente (SA1). Paginação por contrato.\n\nResposta 200:\n```json\n{\n  \"success\": true,\n  \"page\": 1,\n  \"pageSize\": 100,\n  \"hasNext\": false,\n  \"items\": [...]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "200 OK — Contratos encontrados",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/parceria/contratos?codCliente=000001"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"page\": 1,\n  \"pageSize\": 100,\n  \"hasNext\": false,\n  \"items\": [\n    {\n      \"filial\": \"01\",\n      \"numeroContrato\": \"000123\",\n      \"emissao\": \"2026-07-03\",\n      \"cliente\": {\n        \"codigo\": \"000001\",\n        \"loja\": \"01\",\n        \"nome\": \"CLIENTE EXEMPLO LTDA\",\n        \"cnpjCpf\": \"12345678000199\",\n        \"tipo\": \"J\",\n        \"inscricaoEstadual\": \"001234567\"\n      },\n      \"frete\": {\n        \"valorFrete\": 1500.75,\n        \"calculaPorTonelada\": true,\n        \"campoOrigemValorFrete\": \"ADA_FRTERC\",\n        \"campoOrigemCalculaPorTonelada\": \"ADA_FRKMT\"\n      },\n      \"itens\": [\n        {\n          \"item\": \"01\",\n          \"produto\": \"BRITA01\",\n          \"quantidade\": 100.0,\n          \"valorUnitario\": 60.0,\n          \"valorTotal\": 6000.0\n        }\n      ]\n    }\n  ]\n}"
+            },
+            {
+              "name": "200 OK — Sem contratos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/parceria/contratos?codCliente=999999"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"page\": 1,\n  \"pageSize\": 100,\n  \"hasNext\": false,\n  \"items\": []\n}"
+            },
+            {
+              "name": "400 Bad Request — codCliente ausente",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/parceria/contratos"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"O parametro codCliente e obrigatorio.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Contratos por Emissão Exata",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/parceria/contratos?codCliente={{codCliente}}&emissao=20260703",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "parceria", "contratos"],
+              "query": [
+                {
+                  "key": "codCliente",
+                  "value": "{{codCliente}}"
+                },
+                {
+                  "key": "emissao",
+                  "value": "20260703",
+                  "description": "Data exata de emissão (YYYYMMDD) — tem prioridade sobre emissaoDe/emissaoAte"
+                }
+              ]
+            },
+            "description": "Consulta contratos do cliente com data de emissão exata."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Contratos por Período",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/parceria/contratos?codCliente={{codCliente}}&loja=01&emissaoDe=20260701&emissaoAte=20260703&page=1&pageSize=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "parceria", "contratos"],
+              "query": [
+                {
+                  "key": "codCliente",
+                  "value": "{{codCliente}}"
+                },
+                {
+                  "key": "loja",
+                  "value": "01"
+                },
+                {
+                  "key": "emissaoDe",
+                  "value": "20260701"
+                },
+                {
+                  "key": "emissaoAte",
+                  "value": "20260703"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Consulta contratos do cliente/loja dentro de um período de emissão, com paginação explícita."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

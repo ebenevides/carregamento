@@ -16,6 +16,9 @@ Formato: [Semântico](https://semver.org/). Datas no formato YYYY-MM-DD.
 - `SincronizarFilaGuardianJob` (2min): ordens `TARA_REALIZADA` liberadas na fila do Guardian entram
   automaticamente em `AGUARDANDO_CARREGAMENTO` via `EntrarNaFilaAction` (DT-014).
 - Painel `Integrações Guardian`: seção de fila com sync manual, card de contagem, ticket search enriquecido.
+- Protheus real ligado (`PROTHEUS_MOCK=false`, URL/credenciais de produção). `PedidoProtheusDTO` redesenhado
+  pra bater com o contrato real (`ClienteProtheusDTO`/`ItemPedidoProtheusDTO[]` aninhados, veículo/motorista
+  por item) — o shape antigo nunca tinha sido testado contra a API de verdade. Ver DT-016.
 
 ### Fixed
 - `config/inertia.php` usava schema de chaves incompatível com a versão instalada do pacote

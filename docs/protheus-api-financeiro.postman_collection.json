@@ -1,0 +1,713 @@
+{
+  "info": {
+    "_postman_id": "protheus-api-financeiro-v1",
+    "name": "Protheus API — Dashboard Financeiro",
+    "description": "API REST somente-leitura para dashboards financeiros — TOTVS Protheus 12.1.2410+\n\nConsulta SE1 (Contas a Receber), SE2 (Contas a Pagar), SE5 (Movimentacao Bancaria) e SE8 (Saldos Bancarios).\n\nEndpoints:\n  GET  /api/v1/financeiro/contas-receber\n  GET  /api/v1/financeiro/contas-pagar\n  GET  /api/v1/financeiro/movimentos-bancarios\n  GET  /api/v1/financeiro/saldos-bancarios\n  GET  /api/v1/financeiro/dashboard\n  GET  /api/v1/financeiro/health\n\nPadroes: envelope {success,data,meta} para sucesso, RFC 7807 (application/problem+json) para erros.\n\nConfigure a variável {{base_url}} com o endereço do AppServer (ex: http://200.106.188.113:8402).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "description": "URL base do AppServer Protheus (sem barra final)"
+    },
+    {
+      "key": "filial",
+      "value": "01",
+      "description": "Filial padrão para testes"
+    },
+    {
+      "key": "dataDe",
+      "value": "2026-01-01",
+      "description": "Data inicial padrão (YYYY-MM-DD)"
+    },
+    {
+      "key": "dataAte",
+      "value": "2026-12-31",
+      "description": "Data final padrão (YYYY-MM-DD)"
+    },
+    {
+      "key": "codigoCliente",
+      "value": "000001",
+      "description": "Código do cliente para testes de contas a receber"
+    },
+    {
+      "key": "codigoFornecedor",
+      "value": "000001",
+      "description": "Código do fornecedor para testes de contas a pagar"
+    },
+    {
+      "key": "banco",
+      "value": "001",
+      "description": "Código do banco para testes de movimentação/saldo bancário"
+    },
+    {
+      "key": "agencia",
+      "value": "1234",
+      "description": "Agência bancária para testes"
+    },
+    {
+      "key": "conta",
+      "value": "56789",
+      "description": "Conta bancária para testes"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "Bearer token de autenticação (opcional)"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Contas a Receber",
+      "item": [
+        {
+          "name": "Listar Contas a Receber",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/contas-receber?filial={{filial}}&dataDe={{dataDe}}&dataAte={{dataAte}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "contas-receber"],
+              "query": [
+                {
+                  "key": "filial",
+                  "value": "{{filial}}",
+                  "description": "Código da filial (obrigatório)"
+                },
+                {
+                  "key": "dataDe",
+                  "value": "{{dataDe}}",
+                  "description": "Data inicial YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "dataAte",
+                  "value": "{{dataAte}}",
+                  "description": "Data final YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "codigo",
+                  "value": "{{codigoCliente}}",
+                  "description": "Código do cliente (E1_CLIENTE)",
+                  "disabled": true
+                },
+                {
+                  "key": "loja",
+                  "value": "01",
+                  "description": "Loja do cliente",
+                  "disabled": true
+                },
+                {
+                  "key": "natureza",
+                  "value": "",
+                  "description": "Código da natureza financeira",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "todos",
+                  "description": "aberto | baixado | vencido | todos",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número da página",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Registros por página (máx. 500)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "E1_EMISSAO",
+                  "description": "Campo de ordenação (whitelist fixa)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderDirection",
+                  "value": "asc",
+                  "description": "asc | desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista titulos de contas a receber (SE1 + SA1) com indicadores, graficos e paginacao."
+          },
+          "response": [
+            {
+              "name": "200 OK — Consulta com sucesso",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-receber?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": {\n      \"totalTitulos\": 42,\n      \"valorOriginalTotal\": 125000.50,\n      \"saldoAbertoTotal\": 38000.00,\n      \"totalRecebido\": 87000.50,\n      \"saldoVencido\": 5200.00,\n      \"saldoAVencer\": 32800.00,\n      \"quantidadeClientes\": 18,\n      \"ticketMedio\": 2976.20,\n      \"inadimplenciaPercentual\": 4.16\n    },\n    \"charts\": {\n      \"porDia\": [ { \"data\": \"2026-06-10\", \"valorOriginal\": 1500.00, \"saldoAberto\": 1500.00 } ],\n      \"porCliente\": [ { \"codigo\": \"000001\", \"loja\": \"01\", \"nome\": \"CLIENTE EXEMPLO LTDA\", \"valorOriginal\": 12000.00, \"saldoAberto\": 4000.00 } ],\n      \"porNatureza\": [ { \"natureza\": \"REC\", \"valorOriginal\": 90000.00, \"saldoAberto\": 30000.00 } ],\n      \"aging\": [\n        { \"faixa\": \"A vencer\", \"saldoAberto\": 32800.00, \"quantidadeTitulos\": 20 },\n        { \"faixa\": \"Vencido 1-7 dias\", \"saldoAberto\": 1200.00, \"quantidadeTitulos\": 3 }\n      ]\n    },\n    \"items\": [\n      {\n        \"filial\": \"01\",\n        \"prefixo\": \"001\",\n        \"numero\": \"000001\",\n        \"parcela\": \"01\",\n        \"cliente\": \"000001\",\n        \"loja\": \"01\",\n        \"nomeCliente\": \"CLIENTE EXEMPLO LTDA\",\n        \"emissao\": \"2026-06-10\",\n        \"vencimento\": \"2026-07-10\",\n        \"valor\": 1500.00,\n        \"saldo\": 1500.00\n      }\n    ]\n  },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"page\": 1,\n    \"pageSize\": 50,\n    \"totalRecords\": 42,\n    \"totalPages\": 1,\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\"\n  }\n}"
+            },
+            {
+              "name": "400 Validação — parâmetros ausentes/inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-receber"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/validation-error\",\n  \"title\": \"Parametros invalidos\",\n  \"status\": 400,\n  \"detail\": \"Um ou mais parametros da requisicao sao invalidos.\",\n  \"instance\": \"/api/v1/financeiro/contas-receber\",\n  \"errors\": [\n    { \"field\": \"filial\", \"message\": \"Campo 'filial' e obrigatorio.\" },\n    { \"field\": \"dataDe\", \"message\": \"Informe a data no formato YYYY-MM-DD.\" }\n  ],\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            },
+            {
+              "name": "403 Forbidden — filial não autorizada",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-receber?filial=99&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/filial-nao-autorizada\",\n  \"title\": \"Filial nao autorizada\",\n  \"status\": 403,\n  \"detail\": \"O usuario nao possui acesso a filial '99'.\",\n  \"instance\": \"/api/v1/financeiro/contas-receber\",\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            },
+            {
+              "name": "500 Internal Server Error",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-receber?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/internal-server-error\",\n  \"title\": \"Internal Server Error\",\n  \"status\": 500,\n  \"detail\": \"Erro ao processar a consulta de contas a receber.\",\n  \"instance\": \"/api/v1/financeiro/contas-receber\",\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contas a Pagar",
+      "item": [
+        {
+          "name": "Listar Contas a Pagar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/contas-pagar?filial={{filial}}&dataDe={{dataDe}}&dataAte={{dataAte}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "contas-pagar"],
+              "query": [
+                {
+                  "key": "filial",
+                  "value": "{{filial}}",
+                  "description": "Código da filial (obrigatório)"
+                },
+                {
+                  "key": "dataDe",
+                  "value": "{{dataDe}}",
+                  "description": "Data inicial YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "dataAte",
+                  "value": "{{dataAte}}",
+                  "description": "Data final YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "codigo",
+                  "value": "{{codigoFornecedor}}",
+                  "description": "Código do fornecedor (E2_FORNECE)",
+                  "disabled": true
+                },
+                {
+                  "key": "loja",
+                  "value": "01",
+                  "description": "Loja do fornecedor",
+                  "disabled": true
+                },
+                {
+                  "key": "natureza",
+                  "value": "",
+                  "description": "Código da natureza financeira",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "todos",
+                  "description": "aberto | baixado | vencido | todos",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número da página",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Registros por página (máx. 500)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "E2_EMISSAO",
+                  "description": "Campo de ordenação (whitelist fixa)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderDirection",
+                  "value": "asc",
+                  "description": "asc | desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista titulos de contas a pagar (SE2 + SA2) com indicadores, graficos e paginacao."
+          },
+          "response": [
+            {
+              "name": "200 OK — Consulta com sucesso",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-pagar?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": {\n      \"totalTitulos\": 30,\n      \"valorOriginalTotal\": 98000.00,\n      \"saldoAbertoTotal\": 41000.00,\n      \"totalPago\": 57000.00,\n      \"saldoVencido\": 3000.00,\n      \"saldoAVencer\": 38000.00,\n      \"quantidadeFornecedores\": 12,\n      \"ticketMedio\": 3266.66\n    },\n    \"charts\": {\n      \"porDia\": [ { \"data\": \"2026-06-15\", \"valorOriginal\": 2200.00, \"saldoAberto\": 2200.00 } ],\n      \"porFornecedor\": [ { \"codigo\": \"000001\", \"loja\": \"01\", \"nome\": \"FORNECEDOR EXEMPLO LTDA\", \"valorOriginal\": 15000.00, \"saldoAberto\": 5000.00 } ],\n      \"porNatureza\": [ { \"natureza\": \"PAG\", \"valorOriginal\": 60000.00, \"saldoAberto\": 25000.00 } ],\n      \"aging\": [\n        { \"faixa\": \"A vencer\", \"saldoAberto\": 38000.00, \"quantidadeTitulos\": 18 },\n        { \"faixa\": \"Vencido 8-15 dias\", \"saldoAberto\": 1000.00, \"quantidadeTitulos\": 2 }\n      ]\n    },\n    \"items\": [\n      {\n        \"filial\": \"01\",\n        \"prefixo\": \"001\",\n        \"numero\": \"000010\",\n        \"parcela\": \"01\",\n        \"fornecedor\": \"000001\",\n        \"loja\": \"01\",\n        \"nomeFornecedor\": \"FORNECEDOR EXEMPLO LTDA\",\n        \"emissao\": \"2026-06-15\",\n        \"vencimento\": \"2026-07-15\",\n        \"valor\": 2200.00,\n        \"saldo\": 2200.00\n      }\n    ]\n  },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"page\": 1,\n    \"pageSize\": 50,\n    \"totalRecords\": 30,\n    \"totalPages\": 1,\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\"\n  }\n}"
+            },
+            {
+              "name": "400 Validação — parâmetros ausentes/inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-pagar"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/validation-error\",\n  \"title\": \"Parametros invalidos\",\n  \"status\": 400,\n  \"detail\": \"Um ou mais parametros da requisicao sao invalidos.\",\n  \"instance\": \"/api/v1/financeiro/contas-pagar\",\n  \"errors\": [\n    { \"field\": \"filial\", \"message\": \"Campo 'filial' e obrigatorio.\" }\n  ],\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            },
+            {
+              "name": "500 Internal Server Error",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/contas-pagar?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/internal-server-error\",\n  \"title\": \"Internal Server Error\",\n  \"status\": 500,\n  \"detail\": \"Erro ao processar a consulta de contas a pagar.\",\n  \"instance\": \"/api/v1/financeiro/contas-pagar\",\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Movimentação Bancária",
+      "item": [
+        {
+          "name": "Listar Movimentações Bancárias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/movimentos-bancarios?filial={{filial}}&dataDe={{dataDe}}&dataAte={{dataAte}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "movimentos-bancarios"],
+              "query": [
+                {
+                  "key": "filial",
+                  "value": "{{filial}}",
+                  "description": "Código da filial (obrigatório)"
+                },
+                {
+                  "key": "dataDe",
+                  "value": "{{dataDe}}",
+                  "description": "Data inicial YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "dataAte",
+                  "value": "{{dataAte}}",
+                  "description": "Data final YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "banco",
+                  "value": "{{banco}}",
+                  "description": "Código do banco",
+                  "disabled": true
+                },
+                {
+                  "key": "agencia",
+                  "value": "{{agencia}}",
+                  "description": "Agência bancária",
+                  "disabled": true
+                },
+                {
+                  "key": "conta",
+                  "value": "{{conta}}",
+                  "description": "Conta bancária",
+                  "disabled": true
+                },
+                {
+                  "key": "natureza",
+                  "value": "",
+                  "description": "Código da natureza financeira",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número da página",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Registros por página (máx. 500)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "E5_DATA",
+                  "description": "Campo de ordenação (whitelist fixa)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderDirection",
+                  "value": "asc",
+                  "description": "asc | desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista movimentacoes bancarias (SE5 + SA6 opcional) com indicadores, graficos e paginacao."
+          },
+          "response": [
+            {
+              "name": "200 OK — Consulta com sucesso",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/movimentos-bancarios?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": {\n      \"totalEntradas\": 45000.00,\n      \"totalSaidas\": 32000.00,\n      \"fluxoLiquido\": 13000.00,\n      \"quantidadeMovimentos\": 60,\n      \"valorConciliado\": 40000.00,\n      \"valorNaoConciliado\": 5000.00\n    },\n    \"charts\": {\n      \"porDia\": [ { \"data\": \"2026-06-10\", \"entradas\": 3000.00, \"saidas\": 1500.00 } ],\n      \"porBancoConta\": [ { \"banco\": \"001\", \"agencia\": \"1234\", \"conta\": \"56789\", \"totalEntradas\": 20000.00, \"totalSaidas\": 15000.00 } ],\n      \"porNatureza\": [ { \"natureza\": \"MOV\", \"totalEntradas\": 25000.00, \"totalSaidas\": 18000.00 } ],\n      \"porOrigem\": [ { \"origem\": \"1\", \"totalEntradas\": 30000.00, \"totalSaidas\": 20000.00 } ],\n      \"maioresEntradas\": [ { \"data\": \"2026-06-10\", \"historico\": \"DEPOSITO\", \"valor\": 5000.00, \"banco\": \"001\", \"agencia\": \"1234\", \"conta\": \"56789\" } ],\n      \"maioresSaidas\": [ { \"data\": \"2026-06-12\", \"historico\": \"PAGAMENTO FORNECEDOR\", \"valor\": 3200.00, \"banco\": \"001\", \"agencia\": \"1234\", \"conta\": \"56789\" } ]\n    },\n    \"items\": [\n      {\n        \"filial\": \"01\",\n        \"data\": \"2026-06-10\",\n        \"banco\": \"001\",\n        \"agencia\": \"1234\",\n        \"conta\": \"56789\",\n        \"recPag\": \"R\",\n        \"valor\": 3000.00,\n        \"historico\": \"DEPOSITO\"\n      }\n    ]\n  },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"page\": 1,\n    \"pageSize\": 50,\n    \"totalRecords\": 60,\n    \"totalPages\": 2,\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\"\n  }\n}"
+            },
+            {
+              "name": "400 Validação — parâmetros ausentes/inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/movimentos-bancarios"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/validation-error\",\n  \"title\": \"Parametros invalidos\",\n  \"status\": 400,\n  \"detail\": \"Um ou mais parametros da requisicao sao invalidos.\",\n  \"instance\": \"/api/v1/financeiro/movimentos-bancarios\",\n  \"errors\": [\n    { \"field\": \"dataAte\", \"message\": \"Informe a data no formato YYYY-MM-DD.\" }\n  ],\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Saldos Bancários",
+      "item": [
+        {
+          "name": "Listar Saldos Bancários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/saldos-bancarios?filial={{filial}}&dataDe={{dataDe}}&dataAte={{dataAte}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "saldos-bancarios"],
+              "query": [
+                {
+                  "key": "filial",
+                  "value": "{{filial}}",
+                  "description": "Código da filial (obrigatório)"
+                },
+                {
+                  "key": "dataDe",
+                  "value": "{{dataDe}}",
+                  "description": "Data inicial YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "dataAte",
+                  "value": "{{dataAte}}",
+                  "description": "Data final YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "banco",
+                  "value": "{{banco}}",
+                  "description": "Código do banco",
+                  "disabled": true
+                },
+                {
+                  "key": "agencia",
+                  "value": "{{agencia}}",
+                  "description": "Agência bancária",
+                  "disabled": true
+                },
+                {
+                  "key": "conta",
+                  "value": "{{conta}}",
+                  "description": "Conta bancária",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número da página",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Registros por página (máx. 500)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderBy",
+                  "value": "E8_DTSALAT",
+                  "description": "Campo de ordenação (whitelist fixa)",
+                  "disabled": true
+                },
+                {
+                  "key": "orderDirection",
+                  "value": "asc",
+                  "description": "asc | desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista registros de saldo bancario (SE8 + SA6 opcional), saldo inicial/final por conta e evolucao diaria."
+          },
+          "response": [
+            {
+              "name": "200 OK — Consulta com sucesso",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/saldos-bancarios?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": {\n      \"saldoInicialConsolidado\": 50000.00,\n      \"saldoFinalConsolidado\": 63000.00,\n      \"variacaoAbsoluta\": 13000.00,\n      \"variacaoPercentual\": 26.0,\n      \"contasPositivas\": 3,\n      \"contasNegativas\": 0,\n      \"quantidadeContas\": 3\n    },\n    \"charts\": {\n      \"evolucaoDiaria\": [ { \"data\": \"2026-06-10\", \"saldo\": 55000.00 } ],\n      \"saldoPorConta\": [ { \"banco\": \"001\", \"agencia\": \"1234\", \"conta\": \"56789\", \"saldoInicial\": 50000.00, \"dataInicial\": \"2025-12-31\", \"saldoFinal\": 63000.00, \"dataFinal\": \"2026-06-15\" } ],\n      \"saldoPorBanco\": [ { \"banco\": \"001\", \"saldoFinal\": 63000.00 } ]\n    },\n    \"items\": [\n      {\n        \"filial\": \"01\",\n        \"banco\": \"001\",\n        \"agencia\": \"1234\",\n        \"conta\": \"56789\",\n        \"dataSaldo\": \"2026-06-15\",\n        \"saldo\": 63000.00\n      }\n    ]\n  },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"page\": 1,\n    \"pageSize\": 50,\n    \"totalRecords\": 12,\n    \"totalPages\": 1,\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\"\n  }\n}"
+            },
+            {
+              "name": "400 Validação — parâmetros ausentes/inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/saldos-bancarios"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/validation-error\",\n  \"title\": \"Parametros invalidos\",\n  \"status\": 400,\n  \"detail\": \"Um ou mais parametros da requisicao sao invalidos.\",\n  \"instance\": \"/api/v1/financeiro/saldos-bancarios\",\n  \"errors\": [\n    { \"field\": \"filial\", \"message\": \"Campo 'filial' e obrigatorio.\" }\n  ],\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Consolidado",
+      "item": [
+        {
+          "name": "Obter Dashboard Consolidado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/dashboard?filial={{filial}}&dataDe={{dataDe}}&dataAte={{dataAte}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "dashboard"],
+              "query": [
+                {
+                  "key": "filial",
+                  "value": "{{filial}}",
+                  "description": "Código da filial (obrigatório)"
+                },
+                {
+                  "key": "dataDe",
+                  "value": "{{dataDe}}",
+                  "description": "Data inicial YYYY-MM-DD (obrigatório)"
+                },
+                {
+                  "key": "dataAte",
+                  "value": "{{dataAte}}",
+                  "description": "Data final YYYY-MM-DD (obrigatório)"
+                }
+              ]
+            },
+            "description": "Indicadores consolidados de Contas a Receber, Contas a Pagar, Fluxo de Caixa e Saldos Bancarios. Nao retorna todos os registros analiticos, apenas agregados/graficos."
+          },
+          "response": [
+            {
+              "name": "200 OK — Consulta com sucesso",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/dashboard?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": { \"from\": \"2026-01-01\", \"to\": \"2026-12-31\" },\n    \"accountsReceivable\": { \"openAmount\": 38000.00, \"overdueAmount\": 5200.00, \"receivedAmount\": 87000.50, \"customerCount\": 18 },\n    \"accountsPayable\": { \"openAmount\": 41000.00, \"overdueAmount\": 3000.00, \"paidAmount\": 57000.00, \"supplierCount\": 12 },\n    \"cashFlow\": { \"inflow\": 45000.00, \"outflow\": 32000.00, \"netFlow\": 13000.00 },\n    \"bankBalances\": { \"initialBalance\": 50000.00, \"finalBalance\": 63000.00, \"variation\": 13000.00 },\n    \"charts\": {\n      \"cashFlowByDay\": [ { \"data\": \"2026-06-10\", \"entradas\": 3000.00, \"saidas\": 1500.00 } ],\n      \"receivablesAging\": [ { \"faixa\": \"A vencer\", \"saldoAberto\": 32800.00, \"quantidadeTitulos\": 20 } ],\n      \"payablesAging\": [ { \"faixa\": \"A vencer\", \"saldoAberto\": 38000.00, \"quantidadeTitulos\": 18 } ],\n      \"balanceByBank\": [ { \"banco\": \"001\", \"saldoFinal\": 63000.00 } ]\n    }\n  },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\"\n  }\n}"
+            },
+            {
+              "name": "200 OK — Com aviso de múltiplas moedas",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/dashboard?filial=01&dataDe=2026-01-01&dataAte=2026-12-31"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": { \"...\": \"omitido\" },\n  \"meta\": {\n    \"filial\": \"01\",\n    \"dataDe\": \"2026-01-01\",\n    \"dataAte\": \"2026-12-31\",\n    \"generatedAt\": \"2026-07-15T10:30:00-04:00\",\n    \"warnings\": [\n      \"Foram encontrados titulos em mais de uma moeda (2). Os valores consolidados nao realizam conversao cambial.\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "400 Validação — parâmetros ausentes/inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/dashboard"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                { "key": "Content-Type", "value": "application/problem+json" }
+              ],
+              "body": "{\n  \"type\": \"https://api.empresa.local/problems/validation-error\",\n  \"title\": \"Parametros invalidos\",\n  \"status\": 400,\n  \"detail\": \"Um ou mais parametros da requisicao sao invalidos.\",\n  \"instance\": \"/api/v1/financeiro/dashboard\",\n  \"errors\": [\n    { \"field\": \"filial\", \"message\": \"Campo 'filial' e obrigatorio.\" },\n    { \"field\": \"dataDe\", \"message\": \"Informe a data no formato YYYY-MM-DD.\" },\n    { \"field\": \"dataAte\", \"message\": \"Informe a data no formato YYYY-MM-DD.\" }\n  ],\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/financeiro/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "financeiro", "health"]
+            },
+            "description": "Health check da API de Dashboard Financeiro. Sem parametros, sem autenticacao necessaria na maioria dos ambientes."
+          },
+          "response": [
+            {
+              "name": "200 OK — Serviço operante",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/financeiro/health"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"service\": \"financial-dashboard-api\",\n  \"version\": \"1.0.0\",\n  \"environment\": \"SIGAFIN\",\n  \"timestamp\": \"2026-07-15T10:30:00-04:00\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

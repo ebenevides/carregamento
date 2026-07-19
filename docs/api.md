@@ -184,7 +184,13 @@ Motorista também recebe notificação individual no canal privado `App.Models.U
 
 ### `GET /api/v1/integracoes/protheus/pedidos/{numero}`
 
-Consulta pedido no Protheus.
+Consulta pedido no Protheus (`GET {PROTHEUS_BASE_URL}/api/v1/faturamento/pedidos/{filial}/{numero}` — ver
+`docs/protheus-api-pedidos.postman_collection.json`, contrato confirmado contra produção em 2026-07-19, DT-016).
+- Query opcional: `filial` (default `01`)
+- Resposta: cabeçalho do pedido + `cliente` + `itens[]`. **Placa/motorista vêm dentro de cada item**
+  (`itens[].placa_veiculo`/`motorista_nome`/`motorista_documento`), não no cabeçalho — um pedido Protheus pode
+  ter itens com veículo/motorista diferentes cada.
+- `404` se pedido não existe na filial informada
 
 ### `GET /api/v1/integracoes/guardian/tickets/{ticket}`
 

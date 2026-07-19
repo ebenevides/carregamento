@@ -15,19 +15,22 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - 12 novos testes de feature (83 total) + roteiro de homologação
 
 ## Última etapa concluída
-**Guardian — fila libera ordem automaticamente** — `consultarFila()`/`FilaGuardianDTO`, endpoint de consulta,
-job `SincronizarFilaGuardianJob` (2min) liberando `TARA_REALIZADA` → `AGUARDANDO_CARREGAMENTO` via
-`EntrarNaFilaAction` quando o Guardian sinaliza veículo liberado na fila dele. Ver DT-014. 8 testes novos.
-Total: **95 testes, 194 assertions.**
+**Protheus real ligado** — URL/credenciais de produção recebidas e configuradas
+(`PROTHEUS_BASE_URL=http://protheus.britaguia.com.br:8400/rest`, `PROTHEUS_MOCK=false`). Contrato real
+confirmado direto contra produção (pedido 778975/filial 00) — diferente do que o DTO antigo assumia:
+`PedidoProtheusDTO` redesenhado com `ClienteProtheusDTO`/`ItemPedidoProtheusDTO[]` aninhados,
+veículo/motorista vêm por item, não no cabeçalho do pedido. Ver DT-016. 4 testes novos.
+Total: **100 testes, 231 assertions.**
 
-Anteriormente: realtime foreground (Reverb) ligado ponta a ponta — ver seção própria abaixo. Antes disso,
-**Etapa 2.5** — fixture anonimizada de ticket real Guardian com 4 testes travando `GuardianSoapAdapter::mapearTicket()`.
+Anteriormente: Guardian — fila libera ordem automaticamente (`consultarFila()`, `SincronizarFilaGuardianJob`,
+ver DT-014); antes disso, realtime foreground (Reverb) ligado ponta a ponta.
 
 ## Próximas etapas
 - Fase 11 / Etapa 11.1: migration `documento` em `users` + `motorista_user_id` em
   `ordens_carregamento` (ver `docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md`)
 - Configurar PostgreSQL + Redis em produção
-- Definir URL/credenciais Protheus real
+- Nenhuma lógica de negócio consome `PedidoProtheusDTO` ainda (`CriarOrdemAction` não usa Protheus) — decisão
+  futura de como pedido Protheus vira `OrdemCarregamento` (qual item escolher quando o pedido tem vários)
 
 ## O que foi feito (Fases 5–8)
 
@@ -114,7 +117,8 @@ Anteriormente: realtime foreground (Reverb) ligado ponta a ponta — ver seção
 - [x] ~~Telescope quebrava boot em build `--no-dev`~~ — `bootstrap/providers.php` registrava o provider sem
   checar se o pacote (`require-dev`) estava instalado; qualquer imagem Docker (`--no-dev`) não subia. Fix:
   guarda por `class_exists`. Ver DT-011 (atualizado).
-- [ ] Configurar `PROTHEUS_BASE_URL` + credenciais
+- [x] ~~Configurar `PROTHEUS_BASE_URL` + credenciais~~ — feito 2026-07-19, `PROTHEUS_MOCK=false` em produção,
+  contrato real confirmado. Ver DT-016.
 - [ ] Iniciar Fase 11 (App Operador + Motorista + Chat)
 - [ ] Testar em emulador/dispositivo real (não só via API): badge de não lidas do chat, indicador
       visual "Pode se posicionar" chegando por realtime (Reverb/Pusher) sem refresh manual,
