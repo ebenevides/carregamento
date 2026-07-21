@@ -66,9 +66,16 @@ flutter test
 flutter run
 ```
 
-Em emulador/dispositivo, `localhost` aponta para o proprio dispositivo. O host atual da API fica em
-`lib/core/api/api_client.dart` (`apiRootUrl`) e deve ser ajustado por ambiente. Hoje e constante de
-compilacao manual; mudanca para `--dart-define` requer decisao/implementacao explicita.
+Em emulador/dispositivo, `localhost` aponta para o proprio dispositivo. O host da API usa
+`API_ROOT_URL` em tempo de compilacao, com `http://link1.britaguia.com.br:5405` como padrao. Para debug
+local, configure sem alterar codigo versionado:
+
+```bash
+flutter run --dart-define=API_ROOT_URL=http://localhost:5405
+```
+
+Em emulador Android, use o endereco da maquina host acessivel pelo emulador quando `localhost` nao apontar
+para o backend.
 
 ## Auth, API e rotas de tela
 
