@@ -21,6 +21,25 @@ mas nao substitui autorizacao da API.
 | Token | `flutter_secure_storage` | `lib/core/storage/secure_storage.dart` |
 | Realtime | `web_socket_channel`, protocolo Pusher/Reverb | `lib/core/realtime/realtime_client.dart` |
 
+## Tema e identidade visual
+
+A identidade visual fica centralizada em `lib/core/theme/`:
+
+- `AppPalette` define cores de marca, superfícies e cores semânticas de sucesso, atenção, erro e informação;
+- `AppTheme.light(palette: ...)` transforma a paleta em `ThemeData` Material 3;
+- `AppThemeTokens` expõe cores semânticas, espaçamentos e raios por `context.appTokens`.
+
+`CarregamentoApp` aceita uma `AppPalette`, permitindo trocar a identidade sem alterar telas:
+
+```dart
+CarregamentoApp(
+  palette: AppPalette.industrialBlue.copyWith(primary: minhaCor),
+)
+```
+
+Telas devem usar `Theme.of(context).colorScheme` e `context.appTokens`; não adicione cores de marca ou
+status diretamente em widgets.
+
 Features:
 
 ```text
@@ -87,6 +106,8 @@ trabalho futuro, nao como capacidade existente.
 - Separe JSON/model, estado/provider e UI/screen dentro da feature.
 - Centralize HTTP em `ApiClient`; nao espalhe host, token ou Dio nas telas.
 - Provider coordena loading/erro/dados; tela renderiza e dispara intencoes.
+- Chamadas HTTP, montagem de payload e regras de validação compartilhadas pertencem a providers/controllers,
+  não a widgets de tela.
 - Espelhe nomes/status do backend; nao implemente maquina de estados paralela no Dart.
 - Ao alterar payload, atualize model Dart, provider, Request/Resource PHP e testes juntos.
 - Exiba falhas de rede/autorizacao sem perder estado util; invalide providers apos mutacoes.
