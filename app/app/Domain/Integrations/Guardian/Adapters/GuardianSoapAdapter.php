@@ -292,7 +292,7 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
             $dataSaida = (string) $t->DataPesagem;
         }
 
-        [$pesoDoc, $unidade, $atendente, $pedido] = $this->extrairCamposAdicionais($t);
+        [$quantidadeACarregar, $ub, $usuarioProtheus, $observacao] = $this->extrairCamposAdicionais($t);
 
         $tempoPermanencia = isset($t->TempoPermanencia) && $t->TempoPermanencia !== null
             ? (int) $t->TempoPermanencia
@@ -308,24 +308,27 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
             pesoLiquido:      $pesoLiq,
             dataEntrada:      $dataEntrada,
             dataSaida:        $dataSaida,
-            pesoDoc:          $pesoDoc,
-            unidade:          $unidade,
-            atendente:        $atendente,
-            pedido:           $pedido,
-            tempoPermanencia: $tempoPermanencia,
+            quantidadeACarregar: $quantidadeACarregar,
+            ub:                  $ub,
+            usuarioProtheus:     $usuarioProtheus,
+            observacao:          $observacao,
+            tempoPermanencia:    $tempoPermanencia,
         );
     }
 
     /**
-     * Campos adicionais configuráveis no Guardian (Ticket.CamposAdicionais, Numero 1-4).
-     * Confirmado em dados reais de produção: 1=peso doc, 2=unidade/praça, 3=atendente, 4=pedido/nota.
+     * Campos adicionais configuráveis no Guardian (Ticket.CamposAdicionais).
+     * Confirmado com o cliente (2026-07-20): Numero 1/1001=quantidade a carregar do produto,
+     * 2/1002=UB (unidade de britagem, ex. "UB-1"/"UB-2"), 3/1003=usuário Protheus, 4/1004=observação.
+     * O bloco 1001-1004 espelha 1-4 (mesmo valor duplicado) em dados reais de produção — aceita
+     * qualquer um dos dois (o primeiro encontrado vence; na prática o valor é idêntico nos dois blocos).
      * Tickets de portaria (placa ENT0000/SAI0000) só têm 2 slots (flags) — ficam null aqui.
      *
      * @return array{0: ?float, 1: ?string, 2: ?string, 3: ?string}
      */
     private function extrairCamposAdicionais(mixed $t): array
     {
-        $pesoDoc = $unidade = $atendente = $pedido = null;
+        $quantidadeACarregar = $ub = $usuarioProtheus = $observacao = null;
 
         $campos = $t->CamposAdicionais->CampoAdicionalTicket ?? null;
         if ($campos !== null) {
@@ -334,16 +337,16 @@ class GuardianSoapAdapter implements GuardianAdapterInterface
                 $valor  = isset($campo->Valor) ? trim((string) $campo->Valor) : null;
 
                 match ($numero) {
-                    1       => $pesoDoc = ($valor !== null && is_numeric($valor)) ? (float) $valor : null,
-                    2       => $unidade = $valor ?: null,
-                    3       => $atendente = $valor ?: null,
-                    4       => $pedido = $valor ?: null,
+                    1, 1001 => $quantidadeACarregar ??= ($valor !== null && is_numeric($valor)) ? (float) $valor : null,
+                    2, 1002 => $ub ??= $valor ?: null,
+                    3, 1003 => $usuarioProtheus ??= $valor ?: null,
+                    4, 1004 => $observacao ??= $valor ?: null,
                     default => null,
                 };
             }
         }
 
-        return [$pesoDoc, $unidade, $atendente, $pedido];
+        return [$quantidadeACarregar, $ub, $usuarioProtheus, $observacao];
     }
 
     /** Elemento XML vazio (ex.: <Mensagem/>) pode chegar como stdClass em vez de string vazia — normaliza pra null. */

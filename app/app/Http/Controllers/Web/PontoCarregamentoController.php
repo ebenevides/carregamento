@@ -21,6 +21,7 @@ class PontoCarregamentoController extends Controller
                 'id'                        => $p->id,
                 'codigo'                    => $p->codigo,
                 'descricao'                 => $p->descricao,
+                'unidade_britagem'          => $p->unidade_britagem,
                 'status'                    => $p->status->value,
                 'status_label'              => $p->status->label(),
                 'observacao'                => $p->observacao,
@@ -39,10 +40,11 @@ class PontoCarregamentoController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'codigo'     => ['required', 'string', 'max:20', 'unique:pontos_carregamento,codigo'],
-            'descricao'  => ['required', 'string', 'max:100'],
-            'status'     => ['sometimes', 'string', 'in:ATIVO,INATIVO,BLOQUEADO'],
-            'observacao' => ['nullable', 'string'],
+            'codigo'           => ['required', 'string', 'max:20', 'unique:pontos_carregamento,codigo'],
+            'descricao'        => ['required', 'string', 'max:100'],
+            'unidade_britagem' => ['nullable', 'string', 'max:10'],
+            'status'           => ['sometimes', 'string', 'in:ATIVO,INATIVO,BLOQUEADO'],
+            'observacao'       => ['nullable', 'string'],
         ]);
 
         PontoCarregamento::create($data);
@@ -53,10 +55,11 @@ class PontoCarregamentoController extends Controller
     public function update(Request $request, PontoCarregamento $pontoCarregamento): RedirectResponse
     {
         $data = $request->validate([
-            'codigo'     => ['sometimes', 'string', 'max:20', "unique:pontos_carregamento,codigo,{$pontoCarregamento->id}"],
-            'descricao'  => ['sometimes', 'string', 'max:100'],
-            'status'     => ['sometimes', 'string', 'in:ATIVO,INATIVO,BLOQUEADO'],
-            'observacao' => ['nullable', 'string'],
+            'codigo'           => ['sometimes', 'string', 'max:20', "unique:pontos_carregamento,codigo,{$pontoCarregamento->id}"],
+            'descricao'        => ['sometimes', 'string', 'max:100'],
+            'unidade_britagem' => ['nullable', 'string', 'max:10'],
+            'status'           => ['sometimes', 'string', 'in:ATIVO,INATIVO,BLOQUEADO'],
+            'observacao'       => ['nullable', 'string'],
         ]);
 
         $pontoCarregamento->update($data);

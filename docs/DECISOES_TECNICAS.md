@@ -348,3 +348,54 @@ errado. Porta certa é `8400`, prefixo `/rest` obrigatório.
 
 ### Data
 2026-07-19
+
+---
+
+## DT-017 — Desambiguação por UB (unidade de britagem) na resolução de pilha/ponto
+
+### Decisão
+Duas Unidades de Britagem (UB1/UB2) produzem produtos com o mesmo `produto_codigo` Protheus (ex.: BRITA 01
+FINA, BRITA 01 GROSSA, PEDRISCO GROSSO, PO DE PEDRA, BRITA PEDRA DE MAO, BRITA BICA CORRIDA, PEDRISCO BICA
+CORRIDA, BRITA, BRITA GRADUADA), cada uma com pilha/ponto de carregamento próprios. A UB de um pedido não vem
+do Protheus — vem do ticket Guardian, em `CamposAdicionais.Numero=2` (ou `1002`, bloco duplicado), valor tipo
+`"UB-1"`/`"UB-2"`. Corrigido o mapeamento de `CamposAdicionais` inteiro nesse processo: `Numero`
+1/1001=quantidade a carregar, 2/1002=UB, 3/1003=usuário Protheus, 4/1004=observação (rótulos anteriores —
+peso doc/atendente/pedido — estavam incorretos pros campos 1/3/4, só o 2=UB já batia).
+
+Implementado:
+- `pontos_carregamento.unidade_britagem` (migration, nullable, indexado) — cada ponto sabe a qual UB pertence.
+- `ResolverDestinoProdutoService::resolver(string $produtoCodigo, ?string $ub = null)` — tenta achar
+  `produto_pilha_ponto` cujo ponto bate com a UB (padrão primeiro, depois qualquer ativo); se não achar nada
+  específico da UB, cai pro comportamento antigo (ignora UB, pega o primeiro ativo) — necessário pra não gerar
+  divergência em produtos exclusivos de uma UB só, que não precisam ter `unidade_britagem` setada em todo
+  ponto.
+- `CriarOrdemAction` passa a injetar `GuardianAdapterInterface` e, quando `ticketGuardian` já vem preenchido
+  na criação da ordem, consulta o ticket, extrai `ub` e normaliza (`"UB-1"` → `"UB1"`, upper + remove hífen)
+  antes de chamar o resolver. Falha de consulta ao Guardian (timeout, ticket inexistente) é logada e ignorada
+  — a ordem não deixa de ser criada por isso, só perde a desambiguação por UB nesse caso.
+- `TicketGuardianDTO`: campos renomeados `pesoDoc`→`quantidadeACarregar`, `unidade`→`ub`,
+  `atendente`→`usuarioProtheus`, `pedido`→`observacao` (e refletido no relatório por período — controller,
+  Vue e PDF).
+
+### Motivo
+Sem UB, `ResolverDestinoProdutoService` resolvia só por `produto_codigo`: com duas pilhas ativas pro mesmo
+código (uma por UB), o desempate era arbitrário (`first()` da query, sem critério de negócio) — risco real de
+ordem indo pra pilha/ponto errado quando os dois vínculos tiverem `padrao=true`. UB veio do Guardian (não do
+Protheus) por indicação do cliente — confirmado 2026-07-20.
+
+### Impacto
+- Migration `add_unidade_britagem_to_pontos_carregamento_table`.
+- Admin precisa cadastrar `unidade_britagem` (UB1/UB2) nos pontos das UBs que têm produto sobreposto, e
+  registrar um `produto_pilha_ponto` por UB pros códigos que existem nas duas (constraint já suportava isso —
+  `unique(produto_codigo, pilha_produto_id, ponto_carregamento_id)`, não só `produto_codigo`).
+- `PontoCarregamentoController` (web/API), `StorePontoCarregamentoRequest`/`UpdatePontoCarregamentoRequest`,
+  `PontoCarregamentoResource` e `Pages/Pontos/Index.vue` expõem/editam `unidade_britagem`.
+- Teste novo: `tests/Feature/ResolverDestinoProdutoUbTest.php` (resolução com UB, fallback sem UB, e
+  `CriarOrdemAction` ponta a ponta usando ticket mock com UB). `GuardianSoapAdapterMapeamentoTest` atualizado
+  pros novos nomes de campo.
+- Resolução de UB no momento da criação só funciona se `ticket_guardian` já vier preenchido no payload de
+  criação da ordem — se o ticket for vinculado depois, a ordem já terá sido resolvida sem UB (comportamento
+  antigo). Não implementado: re-resolver pilha/ponto se o ticket chegar depois.
+
+### Data
+2026-07-20

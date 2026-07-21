@@ -19,6 +19,7 @@ class GuardianMockAdapter implements GuardianAdapterInterface
             'peso_liquido' => 32.0,
             'data_entrada' => '2026-06-26T08:00:00Z',
             'data_saida'   => null,
+            'ub'          => 'UB-1',
         ],
         '0000002' => [
             'ticket'      => '0000002',
@@ -30,6 +31,7 @@ class GuardianMockAdapter implements GuardianAdapterInterface
             'peso_liquido' => null,
             'data_entrada' => '2026-06-26T09:30:00Z',
             'data_saida'   => null,
+            'ub'          => 'UB-2',
         ],
     ];
 
@@ -53,6 +55,7 @@ class GuardianMockAdapter implements GuardianAdapterInterface
             pesoLiquido: $data['peso_liquido'],
             dataEntrada: $data['data_entrada'],
             dataSaida: $data['data_saida'],
+            ub: $data['ub'] ?? null,
         );
     }
 
@@ -128,8 +131,8 @@ class GuardianMockAdapter implements GuardianAdapterInterface
     {
         $placas     = ['ABC1D23', 'XYZ9Z99', 'JJK4L56', 'QWE7R89', 'MNO2P34'];
         $motoristas = ['João da Silva', 'Maria Souza', 'Carlos Pereira', 'Ana Lima', 'Pedro Rocha'];
-        $unidades   = ['UB-1', 'UB-2'];
-        $atendentes = ['Samira', 'Carlos', 'Fernanda'];
+        $ubs        = ['UB-1', 'UB-2'];
+        $usuariosProtheus = ['Samira', 'Carlos', 'Fernanda'];
 
         $tickets = [];
         $dia = (new \DateTimeImmutable($inicio->format('Y-m-d')))->setTime(0, 0);
@@ -163,11 +166,11 @@ class GuardianMockAdapter implements GuardianAdapterInterface
                     pesoLiquido:      $pesoBruto - $tara,
                     dataEntrada:      $entrada->format(DATE_ATOM),
                     dataSaida:        $saida->format(DATE_ATOM),
-                    pesoDoc:          (float) mt_rand(8, 50),
-                    unidade:          $unidades[$i % count($unidades)],
-                    atendente:        $atendentes[$i % count($atendentes)],
-                    pedido:           (string) mt_rand(90000, 99999),
-                    tempoPermanencia: $duracaoMin,
+                    quantidadeACarregar: (float) mt_rand(8, 50),
+                    ub:                  $ubs[$i % count($ubs)],
+                    usuarioProtheus:     $usuariosProtheus[$i % count($usuariosProtheus)],
+                    observacao:          (string) mt_rand(90000, 99999),
+                    tempoPermanencia:    $duracaoMin,
                 );
             }
 

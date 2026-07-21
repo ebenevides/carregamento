@@ -10,7 +10,9 @@ use App\Domain\Carregamento\Enums\TipoEvento;
 use App\Domain\Carregamento\Models\EventoOrdemCarregamento;
 use App\Domain\Carregamento\Models\OrdemCarregamento;
 use App\Domain\Carregamento\Services\ResolverDestinoProdutoService;
+use App\Domain\Integrations\Guardian\Adapters\GuardianAdapterInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CriarOrdemAction
 {
@@ -19,12 +21,14 @@ class CriarOrdemAction
         private readonly AlterarStatusOrdemAction $alterarStatus,
         private readonly RegistrarDivergenciaAction $registrarDivergencia,
         private readonly ResolverMotoristaAction $resolverMotorista,
+        private readonly GuardianAdapterInterface $guardian,
     ) {}
 
     public function execute(CriarOrdemDTO $dto, OrigemEvento $origem = OrigemEvento::API): OrdemCarregamento
     {
         return DB::transaction(function () use ($dto, $origem) {
-            $destino = $this->resolverDestino->resolver($dto->produtoCodigo);
+            $ub = $this->resolverUb($dto->ticketGuardian);
+            $destino = $this->resolverDestino->resolver($dto->produtoCodigo, $ub);
 
             $ordem = OrdemCarregamento::create([
                 'empresa'               => $dto->empresa,
@@ -84,5 +88,31 @@ class CriarOrdemAction
 
             return $ordem->fresh(['pilhaProduto', 'pontoCarregamento', 'eventos']);
         });
+    }
+
+    /**
+     * Busca a UB (unidade de britagem) no Guardian via CamposAdicionais do ticket (Numero
+     * 2/1002 — ver GuardianSoapAdapter::extrairCamposAdicionais), pra desambiguar produtos
+     * produzidos em mais de uma UB. Falha silenciosamente (loga e segue sem UB) — a resolução
+     * de destino já cai pro comportamento antigo quando UB não é encontrada.
+     */
+    private function resolverUb(?string $ticketGuardian): ?string
+    {
+        if ($ticketGuardian === null) {
+            return null;
+        }
+
+        try {
+            $ub = $this->guardian->consultarTicket($ticketGuardian)->ub;
+        } catch (\Throwable $e) {
+            Log::warning('CriarOrdemAction: falha ao consultar UB no Guardian', [
+                'ticket_guardian' => $ticketGuardian,
+                'erro'            => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        return $ub !== null ? strtoupper(str_replace('-', '', trim($ub))) : null;
     }
 }

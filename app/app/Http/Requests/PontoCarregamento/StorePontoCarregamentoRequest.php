@@ -16,10 +16,11 @@ class StorePontoCarregamentoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'codigo'     => ['required', 'string', 'max:20', 'unique:pontos_carregamento,codigo'],
-            'descricao'  => ['required', 'string', 'max:100'],
-            'status'     => ['sometimes', new Enum(StatusPonto::class)],
-            'observacao' => ['nullable', 'string'],
+            'codigo'           => ['required', 'string', 'max:20', 'unique:pontos_carregamento,codigo'],
+            'descricao'        => ['required', 'string', 'max:100'],
+            'unidade_britagem' => ['nullable', 'string', 'max:10'],
+            'status'           => ['sometimes', new Enum(StatusPonto::class)],
+            'observacao'       => ['nullable', 'string'],
         ];
     }
 }

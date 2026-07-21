@@ -25,6 +25,7 @@ class PontoCarregamento extends Model
     protected $fillable = [
         'codigo',
         'descricao',
+        'unidade_britagem',
         'status',
         'observacao',
     ];

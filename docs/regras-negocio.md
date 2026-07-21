@@ -56,6 +56,16 @@ Toda alteração de status cria registro em `eventos_ordem_carregamento` com `us
 ### RN-008 — Integrações externas só via backend
 Protheus e Guardian não são acessados diretamente por frontend ou Flutter. Toda chamada passa pelos adapters em `app/Domain/Integrations/`.
 
+*(Nota: RN-009, RN-010 e RN-011 já existem — Rejeitar sempre DIVERGENCIA, ações de fila restritas ao ponto do
+operador, chat só ativo com ordem ativa — mas ainda não tinham sido retroportadas pra este arquivo; ver
+`docs/CLAUDE_ROADMAP_OPERADOR_MOTORISTA.md` e `docs/api.md`.)*
+
+### RN-012 — Resolução de pilha/ponto por UB (unidade de britagem)
+Produtos cadastrados em mais de uma UB (ex.: BRITA 01 FINA em UB1 e UB2) resolvem para a pilha/ponto da UB
+correta usando o campo UB do ticket Guardian (`CamposAdicionais.Numero=2`/`1002`), não o `produto_codigo`
+sozinho. Sem UB identificável (ticket ainda não vinculado, ou produto exclusivo de uma UB), cai no
+comportamento padrão: primeira pilha ativa/`padrao=true` encontrada pro código. Ver DT-017.
+
 ## Tolerância de peso
 - Padrão: **5%** (configurável por ordem via `tolerancia_percentual`)
 - Cálculo: `abs(peso_liquido - quantidade_prevista) <= (quantidade_prevista * tolerancia_percentual / 100)`

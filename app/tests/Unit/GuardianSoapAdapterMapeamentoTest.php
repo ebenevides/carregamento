@@ -54,13 +54,13 @@ describe('GuardianSoapAdapter::mapearTicket (dados reais anonimizados)', functio
             ->and($dto->placa)->toBe('TST1A11');
     });
 
-    it('usa só CamposAdicionais 1-4, ignorando o bloco duplicado 1001-1004', function () {
+    it('extrai CamposAdicionais (1-4 ou 1001-1004, blocos duplicados no dado real)', function () {
         $dto = mapearTicketGuardian('0201020', $this->tickets['0201020']);
 
-        expect($dto->pesoDoc)->toBe(32.0)
-            ->and($dto->unidade)->toBe('UB-2')
-            ->and($dto->atendente)->toBe('atendente-teste')
-            ->and($dto->pedido)->toBe('097488');
+        expect($dto->quantidadeACarregar)->toBe(32.0)
+            ->and($dto->ub)->toBe('UB-2')
+            ->and($dto->usuarioProtheus)->toBe('atendente-teste')
+            ->and($dto->observacao)->toBe('097488');
     });
 
     it('mapeia o segundo ticket (ainda aguardando, Estado=10) igualmente', function () {
@@ -70,7 +70,7 @@ describe('GuardianSoapAdapter::mapearTicket (dados reais anonimizados)', functio
             ->and($dto->taraKg())->toBe(9900.0)
             ->and($dto->pesoBrutoKg())->toBe(22950.0)
             ->and($dto->pesoLiquidoKg())->toBe(13050.0)
-            ->and($dto->unidade)->toBe('UB-2')
+            ->and($dto->ub)->toBe('UB-2')
             ->and($dto->motorista)->toBe('MARIA TESTE SANTOS');
     });
 

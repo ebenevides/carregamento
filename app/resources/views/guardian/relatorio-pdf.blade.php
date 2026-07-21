@@ -69,10 +69,10 @@
                 <th>Status</th>
                 <th>Placa</th>
                 <th>Motorista</th>
-                <th>Unidade</th>
-                <th>Atendente</th>
-                <th>Pedido</th>
-                <th>Peso doc. (kg)</th>
+                <th>UB</th>
+                <th>Usuário Protheus</th>
+                <th>Observação</th>
+                <th>Qtd. a carregar (kg)</th>
                 <th>Tara (kg)</th>
                 <th>Peso bruto (kg)</th>
                 <th>Peso líq. (kg)</th>
@@ -87,10 +87,10 @@
                     <td>{{ $t['status'] }}</td>
                     <td>{{ $t['placa'] ?? '—' }}</td>
                     <td>{{ $t['motorista'] ?? '—' }}</td>
-                    <td>{{ $t['unidade'] ?? '—' }}</td>
-                    <td>{{ $t['atendente'] ?? '—' }}</td>
-                    <td>{{ $t['pedido'] ?? '—' }}</td>
-                    <td class="num">{{ $t['peso_doc_kg'] !== null ? number_format($t['peso_doc_kg'], 0, ',', '.') : '—' }}</td>
+                    <td>{{ $t['ub'] ?? '—' }}</td>
+                    <td>{{ $t['usuario_protheus'] ?? '—' }}</td>
+                    <td>{{ $t['observacao'] ?? '—' }}</td>
+                    <td class="num">{{ $t['quantidade_a_carregar'] !== null ? number_format($t['quantidade_a_carregar'], 0, ',', '.') : '—' }}</td>
                     <td class="num">{{ $t['tara_kg'] !== null ? number_format($t['tara_kg'], 0, ',', '.') : '—' }}</td>
                     <td class="num">{{ $t['peso_bruto_kg'] !== null ? number_format($t['peso_bruto_kg'], 0, ',', '.') : '—' }}</td>
                     <td class="num">{{ $t['peso_liquido_kg'] !== null ? number_format($t['peso_liquido_kg'], 0, ',', '.') : '—' }}</td>

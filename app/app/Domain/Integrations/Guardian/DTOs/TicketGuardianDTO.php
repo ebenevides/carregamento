@@ -14,11 +14,11 @@ final readonly class TicketGuardianDTO
         public ?float $pesoLiquido,
         public ?string $dataEntrada,
         public ?string $dataSaida,
-        // Campos adicionais Guardian (CamposAdicionais, Numero 1-4 — ver docs/integracao-guardian.md)
-        public ?float $pesoDoc = null,
-        public ?string $unidade = null,
-        public ?string $atendente = null,
-        public ?string $pedido = null,
+        // Campos adicionais Guardian (CamposAdicionais, Numero 1-4/1001-1004 — ver docs/integracao-guardian.md)
+        public ?float $quantidadeACarregar = null,
+        public ?string $ub = null,
+        public ?string $usuarioProtheus = null,
+        public ?string $observacao = null,
         // Ticket.TempoPermanencia nativo do Guardian (minutos), quando disponível
         public ?int $tempoPermanencia = null,
     ) {}

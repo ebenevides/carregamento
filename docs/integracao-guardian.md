@@ -341,11 +341,22 @@ Fixture anonimizada em `tests/Fixtures/guardian-tickets-exemplo.xml` (Etapa 2.5 
 - **`Ticket.Tara` raiz vem `xsi:nil="true"`** na prática — confirma a nota acima ("OBSOLETO"). A tara real
   precisa ser derivada de `OperacaoTicket` com `TipoOperacaoCodigo=2` (Pesagem Inicial), como
   `GuardianSoapAdapter::mapearTicket()` já faz.
-- **`CamposAdicionais` pode vir duplicado** em dois blocos com os mesmos valores: `Numero` 1-4 (o mapeamento
-  confirmado — peso doc/unidade/atendente/pedido) e 1001-1004 (espelhando 1-4). `extrairCamposAdicionais()` já
-  ignora tudo fora de 1-4 corretamente.
-- **`Observacao` da raiz do ticket também carrega a unidade** (ex.: `"UB-2"`), igual ao `CamposAdicionais`
+- **`CamposAdicionais` pode vir duplicado** em dois blocos com os mesmos valores: `Numero` 1-4 e 1001-1004
+  (espelhando 1-4). `extrairCamposAdicionais()` aceita qualquer um dos dois blocos (o primeiro encontrado
+  vence — na prática o valor é idêntico nos dois). Mapeamento confirmado com o cliente (2026-07-20):
+  `1`/`1001`=quantidade a carregar do produto, `2`/`1002`=**UB** (unidade de britagem, ex. `"UB-1"`/`"UB-2"`),
+  `3`/`1003`=usuário Protheus, `4`/`1004`=observação — expostos em `TicketGuardianDTO` como
+  `quantidadeACarregar`/`ub`/`usuarioProtheus`/`observacao`. (Rótulos anteriores — peso doc/atendente/pedido —
+  eram um chute pré-confirmação e estavam errados pros campos 1/3/4; só o 2=UB já estava certo.)
+- **`Observacao` da raiz do ticket também carrega a UB** (ex.: `"UB-2"`), igual ao `CamposAdicionais`
   `Numero=2` — redundante no dado real, mas não lido pelo adapter hoje (usa só `CamposAdicionais`).
+- **UB desambigua produtos cadastrados em mais de uma unidade de britagem**: vários códigos de produto
+  Protheus (ex. BRITA 01 FINA) são produzidos tanto em UB1 quanto em UB2, cada uma com pilha própria.
+  `CriarOrdemAction` consulta o ticket Guardian (quando `ticket_guardian` já vem preenchido na criação),
+  extrai a UB e normaliza (`"UB-1"` → `"UB1"`) pra passar em
+  `ResolverDestinoProdutoService::resolver($produtoCodigo, $ub)`, que filtra `produto_pilha_ponto` pelo
+  `pontos_carregamento.unidade_britagem` correspondente antes de cair no comportamento antigo (ignora UB) se
+  não achar nada específico. Ver DT-017.
 - Ticket com `Estado=10` (aguardando) e `Estado=3` (concluído) confirmam pelo menos dois valores distintos de
   `Ticket.Estado` — o adapter trata `Estado` como string opaca (`$dto->status`), sem mapear para um enum
   próprio ainda.

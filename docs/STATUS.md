@@ -15,14 +15,22 @@ Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes pass
 - 12 novos testes de feature (83 total) + roteiro de homologação
 
 ## Última etapa concluída
-**Protheus real ligado** — URL/credenciais de produção recebidas e configuradas
+**Desambiguação de pilha/ponto por UB (unidade de britagem)** — produtos que existem em UB1 e UB2 (ex.: BRITA
+01 FINA) agora resolvem pra pilha certa usando a UB do ticket Guardian (`CamposAdicionais.Numero=2`/`1002`),
+não só o `produto_codigo`. Corrigido de quebra o mapeamento inteiro de `CamposAdicionais`, que estava com
+rótulos errados pros campos 1/3/4 (eram peso doc/atendente/pedido; são quantidade a carregar/usuário
+Protheus/observação — confirmado com o cliente). Nova coluna `pontos_carregamento.unidade_britagem`;
+`ResolverDestinoProdutoService` e `CriarOrdemAction` atualizados; UI de pontos (web) e API expõem o campo.
+Ver DT-017, RN-012. 3 testes novos.
+Total: **103 testes, 242 assertions.**
+
+Anteriormente: Protheus real ligado — URL/credenciais de produção recebidas e configuradas
 (`PROTHEUS_BASE_URL=http://protheus.britaguia.com.br:8400/rest`, `PROTHEUS_MOCK=false`). Contrato real
 confirmado direto contra produção (pedido 778975/filial 00) — diferente do que o DTO antigo assumia:
 `PedidoProtheusDTO` redesenhado com `ClienteProtheusDTO`/`ItemPedidoProtheusDTO[]` aninhados,
 veículo/motorista vêm por item, não no cabeçalho do pedido. Ver DT-016. 4 testes novos.
-Total: **100 testes, 231 assertions.**
 
-Anteriormente: Guardian — fila libera ordem automaticamente (`consultarFila()`, `SincronizarFilaGuardianJob`,
+Antes disso: Guardian — fila libera ordem automaticamente (`consultarFila()`, `SincronizarFilaGuardianJob`,
 ver DT-014); antes disso, realtime foreground (Reverb) ligado ponta a ponta.
 
 ## Próximas etapas
@@ -31,6 +39,11 @@ ver DT-014); antes disso, realtime foreground (Reverb) ligado ponta a ponta.
 - Configurar PostgreSQL + Redis em produção
 - Nenhuma lógica de negócio consome `PedidoProtheusDTO` ainda (`CriarOrdemAction` não usa Protheus) — decisão
   futura de como pedido Protheus vira `OrdemCarregamento` (qual item escolher quando o pedido tem vários)
+- Dado real de produção pendente: cadastrar `unidade_britagem` (UB1/UB2) nos pontos de carregamento reais e
+  registrar um `produto_pilha_ponto` por UB pros ~9 códigos sobrepostos (000001-000005, 000007, 000012-000014)
+  — a UI/API já suportam, falta a carga de dados operacional (ver DT-017)
+- Resolução por UB só funciona se `ticket_guardian` já vier preenchido na criação da ordem; se o ticket for
+  vinculado depois, não há re-resolução automática de pilha/ponto (ver DT-017, limitação conhecida)
 
 ## O que foi feito (Fases 5–8)
 

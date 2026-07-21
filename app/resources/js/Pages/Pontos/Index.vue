@@ -21,6 +21,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left">Código</th>
                             <th class="px-4 py-3 text-left">Descrição</th>
+                            <th class="px-4 py-3 text-left">UB</th>
                             <th class="px-4 py-3 text-left">Status</th>
                             <th class="px-4 py-3 text-right">Ordens</th>
                             <th class="px-4 py-3 text-left">Observação</th>
@@ -29,11 +30,12 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-if="!pontos.length">
-                            <td colspan="6" class="text-center py-10 text-gray-400">Nenhum ponto cadastrado.</td>
+                            <td colspan="7" class="text-center py-10 text-gray-400">Nenhum ponto cadastrado.</td>
                         </tr>
                         <tr v-for="p in pontos" :key="p.id" class="hover:bg-gray-50">
                             <td class="px-4 py-3 font-mono text-xs font-bold">{{ p.codigo }}</td>
                             <td class="px-4 py-3 font-medium">{{ p.descricao }}</td>
+                            <td class="px-4 py-3 text-xs">{{ p.unidade_britagem ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <StatusBadge :status="p.status" :label="p.status_label" />
                             </td>
@@ -84,6 +86,13 @@
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             :class="{ 'border-red-400': form.errors.descricao }" />
                         <p v-if="form.errors.descricao" class="text-red-500 text-xs mt-1">{{ form.errors.descricao }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Unidade de Britagem (UB)</label>
+                        <input v-model="form.unidade_britagem" type="text" maxlength="10" placeholder="ex.: UB1"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            :class="{ 'border-red-400': form.errors.unidade_britagem }" />
+                        <p v-if="form.errors.unidade_britagem" class="text-red-500 text-xs mt-1">{{ form.errors.unidade_britagem }}</p>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Status</label>
@@ -150,6 +159,7 @@ const pontoPararemover = ref(null);
 const form = useForm({
     codigo: '',
     descricao: '',
+    unidade_britagem: '',
     status: 'ATIVO',
     observacao: '',
 });
@@ -163,10 +173,11 @@ function abrirCriar() {
 
 function abrirEditar(p) {
     editando.value = p;
-    form.codigo     = p.codigo;
-    form.descricao  = p.descricao;
-    form.status     = p.status;
-    form.observacao = p.observacao ?? '';
+    form.codigo           = p.codigo;
+    form.descricao        = p.descricao;
+    form.unidade_britagem = p.unidade_britagem ?? '';
+    form.status           = p.status;
+    form.observacao       = p.observacao ?? '';
     modalAberto.value = true;
 }
 

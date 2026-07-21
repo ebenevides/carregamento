@@ -198,10 +198,10 @@ class IntegracaoGuardianController extends Controller
                 'data_entrada'     => $dto->dataEntrada,
                 'data_saida'       => $dto->dataSaida,
                 'tempo_patio_min'  => $dto->tempoPatioMinutos(),
-                'peso_doc_kg'      => $dto->pesoDoc,
-                'unidade'          => $dto->unidade,
-                'atendente'        => $dto->atendente,
-                'pedido'           => $dto->pedido,
+                'quantidade_a_carregar' => $dto->quantidadeACarregar,
+                'ub'               => $dto->ub,
+                'usuario_protheus' => $dto->usuarioProtheus,
+                'observacao'       => $dto->observacao,
             ], $resultado['tickets']);
         } catch (\Throwable $e) {
             $erro = $e->getMessage();

@@ -18,10 +18,11 @@ class UpdatePontoCarregamentoRequest extends FormRequest
         $id = $this->route('ponto_carregamento');
 
         return [
-            'codigo'     => ['sometimes', 'string', 'max:20', "unique:pontos_carregamento,codigo,{$id}"],
-            'descricao'  => ['sometimes', 'string', 'max:100'],
-            'status'     => ['sometimes', new Enum(StatusPonto::class)],
-            'observacao' => ['nullable', 'string'],
+            'codigo'           => ['sometimes', 'string', 'max:20', "unique:pontos_carregamento,codigo,{$id}"],
+            'descricao'        => ['sometimes', 'string', 'max:100'],
+            'unidade_britagem' => ['nullable', 'string', 'max:10'],
+            'status'           => ['sometimes', new Enum(StatusPonto::class)],
+            'observacao'       => ['nullable', 'string'],
         ];
     }
 }

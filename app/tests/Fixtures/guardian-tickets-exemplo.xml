@@ -13,7 +13,9 @@
       - Ticket 201020: <Tara> na raiz vem xsi:nil="true" — o adapter precisa
         derivar a tara via TipoOperacaoCodigo=2 (Pesagem Inicial), não do campo raiz.
       - CamposAdicionais duplicados em dois blocos (Numero 1-4 e 1001-1004, mesmo
-        valor) — extrairCamposAdicionais() deve ignorar os 1001+ (usa só 1-4).
+        valor): 1/1001=quantidade a carregar, 2/1002=UB, 3/1003=usuário Protheus,
+        4/1004=observação (confirmado com o cliente 2026-07-20). extrairCamposAdicionais()
+        aceita qualquer um dos dois blocos.
       - Ticket 201021: Estado=10 (aguardando), diferente do 201020 (Estado=3,
         concluído) — dois estados de ticket distintos.
 -->
