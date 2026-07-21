@@ -16,7 +16,7 @@ class OrdemMotoristaResource extends JsonResource
             'ticket_guardian'     => $this->ticket_guardian,
             'produto_codigo'      => $this->produto_codigo,
             'produto_descricao'   => $this->produto_descricao,
-            'quantidade_prevista' => $this->quantidade_prevista,
+            'quantidade_prevista' => (float) $this->quantidade_prevista,
             'placa_veiculo'       => $this->placa_veiculo,
             'placa_carreta'       => $this->placa_carreta,
             'status'              => $this->status->value,
@@ -33,9 +33,9 @@ class OrdemMotoristaResource extends JsonResource
                 'codigo'    => $this->pontoCarregamento->codigo,
                 'descricao' => $this->pontoCarregamento->descricao,
             ]),
-            'peso_liquido'        => $this->peso_liquido,
-            'tara'                => $this->tara,
-            'peso_bruto'          => $this->peso_bruto,
+            'peso_liquido'        => $this->peso_liquido !== null ? (float) $this->peso_liquido : null,
+            'tara'                => $this->tara !== null ? (float) $this->tara : null,
+            'peso_bruto'          => $this->peso_bruto !== null ? (float) $this->peso_bruto : null,
             'divergencias_abertas' => $this->when(
                 $this->relationLoaded('divergencias'),
                 fn () => $this->divergencias->where('status', 'ABERTA')->count()

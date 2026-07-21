@@ -58,7 +58,7 @@ describe('Motorista - minha ordem', function () {
             'ticket_guardian'     => 'TK0001',
             'produto_codigo'      => 'BRITA1',
             'produto_descricao'   => 'Brita 1',
-            'quantidade_prevista' => $ordem->quantidade_prevista,
+            'quantidade_prevista' => (float) $ordem->quantidade_prevista,
             'placa_veiculo'       => 'ABC1D23',
             'status'              => 'EM_CARREGAMENTO',
         ]);
