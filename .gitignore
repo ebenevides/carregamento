@@ -2,3 +2,4 @@
 app/public/app-debug.apk
 .claude/settings.local.json
 .agents/
+.idea/

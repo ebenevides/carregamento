@@ -1,5 +1,17 @@
 # API — Carregamento
 
+Contrato descritivo. Fonte executável: `app/routes/api.php`; validação e comportamento ficam em
+`app/app/Http/Requests/`, `app/app/Http/Controllers/Api/V1/` e `app/app/Http/Resources/`. Inventário
+compacto: [ROTAS.md](ROTAS.md). Todas as rotas, exceto login, exigem Sanctum; isso não implica que
+todos os endpoints já tenham autorização por perfil completa.
+
+### Tipos numéricos
+
+Resources de ordem serializam `quantidade_prevista`, `tara`, `peso_bruto`, `peso_liquido` e
+`tolerancia_percentual` como JSON `number`, nunca como string decimal. Pesos opcionais permanecem
+`null` enquanto não registrados. Fontes: `OrdemCarregamentoResource` e `OrdemMotoristaResource` em
+`app/app/Http/Resources/`.
+
 ## Autenticação
 
 ### `POST /api/v1/auth/login`
@@ -28,6 +40,11 @@ Resposta `200`:
 ```
 
 Todas as demais rotas exigem header `Authorization: Bearer {token}`.
+
+### `GET /api/v1/me`
+
+Retorna usuário autenticado com o relacionamento `pontoCarregamento`. Usado pelo app para restaurar
+a sessão armazenada.
 
 ---
 
@@ -80,15 +97,17 @@ Retorna a fila do ponto do operador autenticado.
 
 Coloca ordem em carregamento.
 - Transição: `AGUARDANDO_CARREGAMENTO` → `EM_CARREGAMENTO`
-- Autorização: usuário com `perfil->podeIniciarCarregamento()` (OPERADOR/EXPEDICAO/ADMIN) **e** mesmo `ponto_carregamento_id`
+- Implementação atual não verifica o perfil nem força o ponto do usuário autenticado. A Action apenas
+  compara o `ponto_carregamento_id` recebido com o ponto da ordem; ver gap em
+  [regras-negocio.md](regras-negocio.md).
 - Valida RN-001 (ticket), RN-002 (tara), RN-005 (sem divergência aberta)
 - Body: `operador_id` (int, obrigatório), `ponto_carregamento_id` (int, obrigatório), `equipamento_codigo` (string, opcional), `observacao` (string, opcional)
 
 ### 2. "Carregado" — `POST /api/v1/ordens-carregamento/{ordemCarregamento}/concluir`
 
 Finaliza carregamento da ordem atual.
-- Transição: `EM_CARREGAMENTO` → `CARREGAMENTO_CONCLUIDO`
-- Autorização: usuário com `perfil->podeIniciarCarregamento()` **e** mesmo `ponto_carregamento_id`
+- Transições: `EM_CARREGAMENTO` → `CARREGAMENTO_CONCLUIDO` → `AGUARDANDO_PESAGEM_FINAL`
+- Autorização: usuário com `perfil->podeIniciarCarregamento()` e mesmo `ponto_carregamento_id`
 - Body: `operador_id` (int, opcional), `observacao` (string, opcional)
 
 ### 3. "Rejeitar" — `POST /api/v1/ordens-carregamento/{ordemCarregamento}/rejeitar`
@@ -108,8 +127,8 @@ Rejeita caminhão — gera **divergência**, nunca cancelamento (RN-009).
 Retorna a ordem ativa do motorista autenticado (se houver).
 - Autorização: apenas `perfil = MOTORISTA`
 - Retorna `204` se nenhuma ordem ativa
-- Ordernamentos ativos: todos exceto `CANCELADO` e `FINALIZADO`
-- Resposta `200` inclui `ticket_guardian`, `produto_codigo`, `produto_descricao`, `quantidade_prevista`, `placa_veiculo`, `placa_carreta`, `status`, `status_label`, `pilha_produto` (id/codigo/descricao), `ponto_carregamento` (id/codigo/descricao), `peso_liquido`, `tara`, `peso_bruto`, `divergencias_abertas`.
+- Status ativos: todos exceto `CANCELADO` e `FINALIZADO`
+- Resposta `200` inclui `ticket_guardian`, `produto_codigo`, `produto_descricao`, `quantidade_prevista` (number), `placa_veiculo`, `placa_carreta`, `status`, `status_label`, `pilha_produto` (id/codigo/descricao), `ponto_carregamento` (id/codigo/descricao), `peso_liquido` (number|null), `tara` (number|null), `peso_bruto` (number|null), `divergencias_abertas`.
 
 ---
 
@@ -117,14 +136,15 @@ Retorna a ordem ativa do motorista autenticado (se houver).
 
 ### `GET /api/v1/divergencias`
 
-Lista divergências. Filtros: `status`, `tipo`, `ordem_id`.
+Lista paginada (30/pp). Filtros implementados: `status` (padrão `ABERTA`) e `ponto_id`.
 
 ### `POST /api/v1/divergencias/{divergencia}/resolver`
 
-Resolve divergência e libera ordem automaticamente.
-- Autorização: `perfil->podeResolverDivergencia()` (EXPEDICAO/ADMIN)
-- Body: `observacao` (string, opcional)
-- Se ordem estava em `DIVERGENCIA`, retorna ao status anterior
+Resolve divergência.
+- Body: `resolucao` (string, obrigatório), `usuario_id` (int, opcional), `liberar` (bool, opcional)
+- Com `liberar=true`, se não restar divergência aberta, transiciona a ordem para
+  `AGUARDANDO_CARREGAMENTO`
+- Implementação atual não aplica explicitamente `podeResolverDivergencia()`
 
 ---
 
@@ -213,11 +233,11 @@ Consulta posição/estado do veículo na fila do Guardian (método SOAP `FilaCon
 ## Cadastros
 
 ### Pontos de carregamento
-`GET|POST /api/v1/pontos-carregamento` · `GET|PUT|DELETE /api/v1/pontos-carregamento/{pontoCarregamento}`
+`GET|POST /api/v1/pontos-carregamento` · `GET|PUT|PATCH|DELETE /api/v1/pontos-carregamento/{pontoCarregamento}`
 `POST .../{pontoCarregamento}/ativar` · `POST .../{pontoCarregamento}/inativar`
 
 ### Pilhas de produto
-`GET|POST /api/v1/pilhas-produto` · `GET|PUT|DELETE /api/v1/pilhas-produto/{pilhaProduto}`
+`GET|POST /api/v1/pilhas-produto` · `GET|PUT|PATCH|DELETE /api/v1/pilhas-produto/{pilhaProduto}`
 `POST .../{pilhaProduto}/ativar` · `POST .../{pilhaProduto}/inativar`
 
 ### Produto × Pilha × Ponto
@@ -230,5 +250,5 @@ Consulta posição/estado do veículo na fila do Guardian (método SOAP `FilaCon
 | Botão | Método | Rota | Transição |
 |---|---|---|---|
 | Próximo | POST | `/ordens-carregamento/{id}/iniciar` | `AGUARDANDO_CARREGAMENTO` → `EM_CARREGAMENTO` |
-| Carregado | POST | `/ordens-carregamento/{id}/concluir` | `EM_CARREGAMENTO` → `CARREGAMENTO_CONCLUIDO` |
+| Carregado | POST | `/ordens-carregamento/{id}/concluir` | `EM_CARREGAMENTO` → `CARREGAMENTO_CONCLUIDO` → `AGUARDANDO_PESAGEM_FINAL` |
 | Rejeitar | POST | `/ordens-carregamento/{id}/rejeitar` | → `DIVERGENCIA` |

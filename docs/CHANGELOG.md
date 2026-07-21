@@ -21,6 +21,8 @@ Formato: [Semântico](https://semver.org/). Datas no formato YYYY-MM-DD.
   por item) — o shape antigo nunca tinha sido testado contra a API de verdade. Ver DT-016.
 
 ### Fixed
+- API de ordens e motorista serializa quantidades, pesos e tolerância como JSON `number`, evitando
+  strings decimais geradas pelos casts do Eloquent.
 - `config/inertia.php` usava schema de chaves incompatível com a versão instalada do pacote
   (`inertiajs/inertia-laravel` v2.0.24) — quebrava `assertInertia()` em qualquer teste (DT-015).
 - `bootstrap/providers.php` quebrava o boot em qualquer build `composer install --no-dev` (Docker de produção)
