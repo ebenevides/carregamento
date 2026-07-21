@@ -262,9 +262,9 @@ import axios from 'axios';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
-    pendente_tara:    Array,
-    pendente_pesagem: Array,
-    pendente_fila:    Array,
+    pendente_tara:    { type: Array, default: () => [] },
+    pendente_pesagem: { type: Array, default: () => [] },
+    pendente_fila:    { type: Array, default: () => [] },
     mock_ativo:       Boolean,
     wsdl:             String,
 });
