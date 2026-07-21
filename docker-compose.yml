@@ -7,6 +7,7 @@ services:
     env_file: app/.env
     volumes:
       - app-storage:/var/www/html/storage
+      - ./app/public/build:/var/www/html/public/build:ro
     depends_on:
       postgres:
         condition: service_healthy
