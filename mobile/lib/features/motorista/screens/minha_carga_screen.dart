@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/motorista_provider.dart';
 import '../models/ordem_motorista_model.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/theme/app_theme_tokens.dart';
 
 class MinhaCargaScreen extends ConsumerWidget {
   const MinhaCargaScreen({super.key});
@@ -32,12 +33,17 @@ class MinhaCargaScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 8),
               const Text('Erro ao carregar'),
               const SizedBox(height: 8),
               FilledButton(
-                onPressed: () => ref.read(motoristaProvider.notifier).carregar(),
+                onPressed: () =>
+                    ref.read(motoristaProvider.notifier).carregar(),
                 child: const Text('Tentar novamente'),
               ),
             ],
@@ -58,15 +64,24 @@ class MinhaCargaScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.inbox_outlined, size: 80, color: Colors.grey.shade400),
+          Icon(
+            Icons.inbox_outlined,
+            size: 80,
+            color: Theme.of(context).colorScheme.outline,
+          ),
           const SizedBox(height: 16),
           Text(
             'Nenhuma carga no momento',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text('Assim que uma ordem for atribuída a você,\nela aparecerá aqui.',
-              textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+          Text(
+            'Assim que uma ordem for atribuída a você,\nela aparecerá aqui.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -82,6 +97,8 @@ class _ComOrdem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final podePosicionar = ordem.podeSePosicionar;
     final aguardando = ordem.aguardando;
+    final tokens = context.appTokens;
+    final colors = Theme.of(context).colorScheme;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(motoristaProvider.notifier).carregar(),
@@ -91,17 +108,21 @@ class _ComOrdem extends ConsumerWidget {
           // Status banner
           if (aguardando)
             Card(
-              color: Colors.orange.shade50,
-              child: const Padding(
-                padding: EdgeInsets.all(16),
+              color: tokens.warningContainer,
+              child: Padding(
+                padding: EdgeInsets.all(tokens.spaceMd),
                 child: Row(
                   children: [
-                    Icon(Icons.hourglass_top, color: Colors.orange, size: 32),
-                    SizedBox(width: 12),
+                    Icon(Icons.hourglass_top, color: tokens.warning, size: 32),
+                    SizedBox(width: tokens.spaceSm),
                     Expanded(
                       child: Text(
                         'Aguardando liberação para posicionar',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: tokens.onWarningContainer,
+                        ),
                       ),
                     ),
                   ],
@@ -110,17 +131,21 @@ class _ComOrdem extends ConsumerWidget {
             ),
           if (podePosicionar)
             Card(
-              color: Colors.green.shade50,
-              child: const Padding(
-                padding: EdgeInsets.all(16),
+              color: tokens.successContainer,
+              child: Padding(
+                padding: EdgeInsets.all(tokens.spaceMd),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 32),
-                    SizedBox(width: 12),
+                    Icon(Icons.check_circle, color: tokens.success, size: 32),
+                    SizedBox(width: tokens.spaceSm),
                     Expanded(
                       child: Text(
                         'Pode se posicionar!',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: tokens.onSuccessContainer,
+                        ),
                       ),
                     ),
                   ],
@@ -135,11 +160,20 @@ class _ComOrdem extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Produto', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(
+                  'Produto',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${ordem.produtoCodigo}${ordem.produtoDescricao != null ? ' — ${ordem.produtoDescricao}' : ''}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -155,11 +189,20 @@ class _ComOrdem extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Bica / Pilha', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(
+                        'Bica / Pilha',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         ordem.pilhaProduto?['codigo'] ?? '—',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -171,11 +214,20 @@ class _ComOrdem extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Unidade', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(
+                        'Unidade',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         ordem.pontoCarregamento?['codigo'] ?? '—',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -190,14 +242,26 @@ class _ComOrdem extends ConsumerWidget {
           _InfoCard(
             child: Row(
               children: [
-                const Icon(Icons.local_shipping, color: Colors.grey),
+                Icon(Icons.local_shipping, color: colors.onSurfaceVariant),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Placa', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      Text(ordem.placaVeiculo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Placa',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        ordem.placaVeiculo,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -210,14 +274,26 @@ class _ComOrdem extends ConsumerWidget {
             _InfoCard(
               child: Row(
                 children: [
-                  const Icon(Icons.link, color: Colors.grey),
+                  Icon(Icons.link, color: colors.onSurfaceVariant),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Carreta', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                        Text(ordem.placaCarreta!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(
+                          'Carreta',
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          ordem.placaCarreta!,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -232,14 +308,26 @@ class _ComOrdem extends ConsumerWidget {
           _InfoCard(
             child: Row(
               children: [
-                const Icon(Icons.scale, color: Colors.grey),
+                Icon(Icons.scale, color: colors.onSurfaceVariant),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Quantidade prevista', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                      Text('${ordem.quantidadePrevista} TN', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Quantidade prevista',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${ordem.quantidadePrevista} TN',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -251,8 +339,13 @@ class _ComOrdem extends ConsumerWidget {
 
           // Status
           Chip(
-            label: Text(ordem.statusLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: podePosicionar ? Colors.green.shade100 : Colors.orange.shade100,
+            label: Text(
+              ordem.statusLabel,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: podePosicionar
+                ? tokens.successContainer
+                : tokens.warningContainer,
           ),
 
           const SizedBox(height: 24),
@@ -266,7 +359,7 @@ class _ComOrdem extends ConsumerWidget {
                 label: const Text('Chat com o operador'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: Colors.indigo),
+                  side: BorderSide(color: colors.primary),
                 ),
                 onPressed: () => context.push('/chat/${ordem.id}'),
               ),
@@ -285,10 +378,7 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: child,
-      ),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
 }

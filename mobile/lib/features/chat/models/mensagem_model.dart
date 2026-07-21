@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class MensagemModel {
   final int id;
   final int? remetenteId;
@@ -14,16 +16,21 @@ class MensagemModel {
   });
 
   factory MensagemModel.fromJson(Map<String, dynamic> j) => MensagemModel(
-        id: j['id'],
-        remetenteId: j['remetente_id'],
-        perfilRemetente: j['perfil_remetente'],
-        mensagem: j['mensagem'],
-        createdAt: j['created_at'],
-      );
+    id: j['id'],
+    remetenteId: j['remetente_id'],
+    perfilRemetente: j['perfil_remetente'],
+    mensagem: j['mensagem'],
+    createdAt: j['created_at'],
+  );
 
   bool get isDoMotorista => perfilRemetente == 'MOTORISTA';
   bool get isDoOperador =>
       perfilRemetente == 'OPERADOR' ||
       perfilRemetente == 'ADMIN' ||
       perfilRemetente == 'EXPEDICAO';
+
+  String? get horarioLabel {
+    final data = DateTime.tryParse(createdAt ?? '');
+    return data == null ? null : DateFormat('HH:mm').format(data.toLocal());
+  }
 }

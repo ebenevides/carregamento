@@ -27,7 +27,8 @@ class RealtimeClient {
   String? _socketId;
   bool _connecting = false;
 
-  final Map<String, void Function(String event, Map<String, dynamic> data)> _handlers = {};
+  final Map<String, void Function(String event, Map<String, dynamic> data)>
+  _handlers = {};
   final Set<String> _pendingSubscriptions = {};
   final Set<String> _confirmedSubscriptions = {};
 
@@ -40,7 +41,8 @@ class RealtimeClient {
     final uri = Uri.parse(apiRootUrl);
     final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
     final port = uri.hasPort ? ':${uri.port}' : '';
-    final wsUrl = '$wsScheme://${uri.host}$port/app/$_reverbAppKey'
+    final wsUrl =
+        '$wsScheme://${uri.host}$port/app/$_reverbAppKey'
         '?protocol=7&client=flutter&version=1.0';
 
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
@@ -60,7 +62,8 @@ class RealtimeClient {
     _confirmedSubscriptions.clear();
     // Reconexão simples: tenta de novo em 3s se ainda houver interesse
     // (alguém inscrito). Sem backoff — foreground apenas, ver Etapa 3.
-    if (_pendingSubscriptions.isNotEmpty || _confirmedSubscriptions.isNotEmpty) {
+    if (_pendingSubscriptions.isNotEmpty ||
+        _confirmedSubscriptions.isNotEmpty) {
       Future.delayed(const Duration(seconds: 3), () {
         _ensureConnected();
       });
@@ -88,9 +91,13 @@ class RealtimeClient {
       case 'pusher:error':
         break;
       default:
-        if (channelName != null && event != null && _handlers.containsKey(channelName)) {
+        if (channelName != null &&
+            event != null &&
+            _handlers.containsKey(channelName)) {
           final data = msg['data'];
-          final decoded = data is String ? jsonDecode(data) as Map<String, dynamic> : (data as Map<String, dynamic>? ?? {});
+          final decoded = data is String
+              ? jsonDecode(data) as Map<String, dynamic>
+              : (data as Map<String, dynamic>? ?? {});
           _handlers[channelName]?.call(event, decoded);
         }
     }
@@ -100,15 +107,19 @@ class RealtimeClient {
     if (channelName.startsWith('private-')) {
       final auth = await _authorize(channelName);
       if (auth == null) return; // sem acesso — não insiste
-      _channel?.sink.add(jsonEncode({
-        'event': 'pusher:subscribe',
-        'data': {'channel': channelName, 'auth': auth},
-      }));
+      _channel?.sink.add(
+        jsonEncode({
+          'event': 'pusher:subscribe',
+          'data': {'channel': channelName, 'auth': auth},
+        }),
+      );
     } else {
-      _channel?.sink.add(jsonEncode({
-        'event': 'pusher:subscribe',
-        'data': {'channel': channelName},
-      }));
+      _channel?.sink.add(
+        jsonEncode({
+          'event': 'pusher:subscribe',
+          'data': {'channel': channelName},
+        }),
+      );
     }
   }
 
@@ -126,7 +137,10 @@ class RealtimeClient {
 
   /// Assina [channelName] e chama [onEvent] a cada evento recebido nele.
   /// Idempotente: chamar de novo com o mesmo canal só troca o callback.
-  Future<void> subscribe(String channelName, void Function(String event, Map<String, dynamic> data) onEvent) async {
+  Future<void> subscribe(
+    String channelName,
+    void Function(String event, Map<String, dynamic> data) onEvent,
+  ) async {
     _handlers[channelName] = onEvent;
     _pendingSubscriptions.add(channelName);
     await _ensureConnected();
@@ -139,10 +153,12 @@ class RealtimeClient {
     _handlers.remove(channelName);
     _pendingSubscriptions.remove(channelName);
     _confirmedSubscriptions.remove(channelName);
-    _channel?.sink.add(jsonEncode({
-      'event': 'pusher:unsubscribe',
-      'data': {'channel': channelName},
-    }));
+    _channel?.sink.add(
+      jsonEncode({
+        'event': 'pusher:unsubscribe',
+        'data': {'channel': channelName},
+      }),
+    );
   }
 
   void dispose() {

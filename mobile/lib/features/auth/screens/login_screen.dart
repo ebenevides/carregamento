@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_theme_tokens.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -13,8 +14,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool _loading = false;
-  String? _erro;
 
   @override
   void dispose() {
@@ -25,83 +24,115 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _loading = true; _erro = null; });
-
-    try {
-      await ref.read(authProvider.notifier).login(_emailCtrl.text.trim(), _passwordCtrl.text);
-    } catch (e) {
-      setState(() => _erro = 'Credenciais inválidas. Tente novamente.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    await ref
+        .read(authProvider.notifier)
+        .login(_emailCtrl.text.trim(), _passwordCtrl.text);
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authProvider);
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
+    final loading = auth.isLoading;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A237E),
+      backgroundColor: colors.primary,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
+            padding: EdgeInsets.all(tokens.spaceLg),
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: EdgeInsets.all(tokens.spaceXl),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.local_shipping, size: 64, color: Color(0xFF1A237E)),
-                      const SizedBox(height: 8),
+                      Icon(
+                        Icons.local_shipping_outlined,
+                        size: 56,
+                        color: colors.primary,
+                      ),
+                      SizedBox(height: tokens.spaceSm),
                       Text(
                         'Carregamento',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: tokens.spaceXs),
                       Text(
                         'Operador de Pá',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: tokens.spaceXl),
                       TextFormField(
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'E-mail',
-                          prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.person_outline),
                         ),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Informe o e-mail' : null,
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Informe o e-mail'
+                            : null,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: tokens.spaceMd),
                       TextFormField(
                         controller: _passwordCtrl,
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Senha',
-                          prefixIcon: Icon(Icons.lock),
-                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock_outline),
                         ),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Informe a senha' : null,
-                        onFieldSubmitted: (_) => _login(),
+                        validator: (v) =>
+                            (v == null || v.isEmpty) ? 'Informe a senha' : null,
+                        onFieldSubmitted: loading ? null : (_) => _login(),
                       ),
-                      if (_erro != null) ...[
-                        const SizedBox(height: 12),
-                        Text(_erro!, style: const TextStyle(color: Colors.red)),
+                      if (auth.hasError) ...[
+                        SizedBox(height: tokens.spaceMd),
+                        Semantics(
+                          liveRegion: true,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: colors.error,
+                                size: 20,
+                              ),
+                              SizedBox(width: tokens.spaceSm),
+                              Expanded(
+                                child: Text(
+                                  'Credenciais inválidas. Tente novamente.',
+                                  style: TextStyle(color: colors.error),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                      const SizedBox(height: 24),
+                      SizedBox(height: tokens.spaceLg),
                       SizedBox(
                         width: double.infinity,
                         height: 48,
                         child: FilledButton(
-                          onPressed: _loading ? null : _login,
-                          child: _loading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Entrar', style: TextStyle(fontSize: 16)),
+                          onPressed: loading ? null : _login,
+                          child: loading
+                              ? SizedBox.square(
+                                  dimension: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colors.onPrimary,
+                                  ),
+                                )
+                              : const Text(
+                                  'Entrar',
+                                  style: TextStyle(fontSize: 16),
+                                ),
                         ),
                       ),
                     ],

@@ -4,17 +4,24 @@ import '../../../core/api/api_client.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/storage/secure_storage.dart';
 
-final motoristaProvider = StateNotifierProvider<MotoristaNotifier, AsyncValue<OrdemMotoristaModel?>>(
-  (ref) => MotoristaNotifier(ref.watch(apiClientProvider), ref.watch(realtimeClientProvider), ref.watch(secureStorageProvider)),
-);
+final motoristaProvider =
+    StateNotifierProvider<MotoristaNotifier, AsyncValue<OrdemMotoristaModel?>>(
+      (ref) => MotoristaNotifier(
+        ref.watch(apiClientProvider),
+        ref.watch(realtimeClientProvider),
+        ref.watch(secureStorageProvider),
+      ),
+    );
 
-class MotoristaNotifier extends StateNotifier<AsyncValue<OrdemMotoristaModel?>> {
+class MotoristaNotifier
+    extends StateNotifier<AsyncValue<OrdemMotoristaModel?>> {
   final ApiClient _api;
   final RealtimeClient _realtime;
   final SecureStorage _storage;
   String? _channel;
 
-  MotoristaNotifier(this._api, this._realtime, this._storage) : super(const AsyncValue.loading()) {
+  MotoristaNotifier(this._api, this._realtime, this._storage)
+    : super(const AsyncValue.loading()) {
     _inscreverCanalPrivado();
   }
 

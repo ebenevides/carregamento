@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_theme_tokens.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../models/mensagem_model.dart';
 
@@ -17,24 +19,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _scrollController = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => ref.read(mensagensProvider(widget.ordemId).notifier).carregar());
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _enviar() async {
+  Future<void> _enviar() async {
     final texto = _controller.text.trim();
     if (texto.isEmpty) return;
 
+    final enviado = await ref
+        .read(mensagensProvider(widget.ordemId).notifier)
+        .enviar(texto);
+    if (!mounted || !enviado) return;
     _controller.clear();
-    await ref.read(mensagensProvider(widget.ordemId).notifier).enviar(texto);
     WidgetsBinding.instance.addPostFrameCallback((_) => _rolarParaBaixo());
   }
 
@@ -50,14 +49,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mensagens = ref.watch(mensagensProvider(widget.ordemId));
+    final chat = ref.watch(mensagensProvider(widget.ordemId));
+    final usuarioId = ref.watch(authProvider).valueOrNull?.id;
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Chat operacional'),
+            Text(
+              'Ordem #${widget.ordemId}',
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.onPrimary.withValues(alpha: .8),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
-            child: mensagens.when(
+            child: chat.mensagens.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
                 child: Column(
@@ -66,7 +82,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     const Text('Erro ao carregar mensagens'),
                     const SizedBox(height: 8),
                     FilledButton(
-                      onPressed: () => ref.read(mensagensProvider(widget.ordemId).notifier).carregar(),
+                      onPressed: () => ref
+                          .read(mensagensProvider(widget.ordemId).notifier)
+                          .carregar(),
                       child: const Text('Tentar novamente'),
                     ),
                   ],
@@ -85,25 +103,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
                   }
                 });
-                return ListView.builder(
+                return ListView.separated(
                   controller: _scrollController,
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(tokens.spaceMd),
                   itemCount: lista.length,
-                  itemBuilder: (_, i) => _MensagemBubble(msg: lista[i]),
+                  itemBuilder: (_, i) =>
+                      _MensagemBubble(msg: lista[i], usuarioId: usuarioId),
+                  separatorBuilder: (_, _) => SizedBox(height: tokens.spaceSm),
                 );
               },
             ),
           ),
+          if (chat.erroEnvio != null)
+            Container(
+              width: double.infinity,
+              color: colors.errorContainer,
+              padding: EdgeInsets.symmetric(
+                horizontal: tokens.spaceMd,
+                vertical: tokens.spaceSm,
+              ),
+              child: Text(
+                chat.erroEnvio!,
+                style: TextStyle(color: colors.onErrorContainer),
+              ),
+            ),
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, -2))],
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadow.withValues(alpha: 0.08),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 8,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+              left: tokens.spaceMd,
+              right: tokens.spaceMd,
+              top: tokens.spaceSm,
+              bottom: MediaQuery.of(context).viewInsets.bottom + tokens.spaceSm,
             ),
             child: Row(
               children: [
@@ -112,21 +151,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     controller: _controller,
                     decoration: const InputDecoration(
                       hintText: 'Digite sua mensagem...',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                     maxLength: 1000,
                     maxLines: 3,
                     minLines: 1,
                     textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _enviar(),
+                    enabled: !chat.enviando,
+                    onSubmitted: chat.enviando ? null : (_) => _enviar(),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: tokens.spaceSm),
                 IconButton.filled(
-                  icon: const Icon(Icons.send),
-                  onPressed: _enviar,
-                  color: Colors.white,
+                  tooltip: 'Enviar mensagem',
+                  icon: chat.enviando
+                      ? SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.onPrimary,
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded),
+                  onPressed: chat.enviando ? null : _enviar,
                 ),
               ],
             ),
@@ -139,35 +189,60 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 class _MensagemBubble extends StatelessWidget {
   final MensagemModel msg;
-  const _MensagemBubble({required this.msg});
+  final int? usuarioId;
+  const _MensagemBubble({required this.msg, required this.usuarioId});
 
   @override
   Widget build(BuildContext context) {
-    final isMotorista = msg.isDoMotorista;
+    final isMinha = usuarioId != null && msg.remetenteId == usuarioId;
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     return Align(
-      alignment: isMotorista ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isMinha ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        padding: EdgeInsets.symmetric(
+          horizontal: tokens.spaceMd,
+          vertical: tokens.spaceSm + 2,
+        ),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         decoration: BoxDecoration(
-          color: isMotorista ? Colors.indigo.shade100 : Colors.grey.shade200,
+          color: isMinha
+              ? colors.primaryContainer
+              : colors.surfaceContainerHighest,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMotorista ? 16 : 4),
-            bottomRight: Radius.circular(isMotorista ? 4 : 16),
+            bottomLeft: Radius.circular(isMinha ? 16 : 4),
+            bottomRight: Radius.circular(isMinha ? 4 : 16),
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isMotorista ? 'Motorista' : 'Operador',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+              msg.isDoMotorista ? 'Motorista' : 'Operador',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 2),
             Text(msg.mensagem, style: const TextStyle(fontSize: 15)),
+            if (msg.horarioLabel != null) ...[
+              SizedBox(height: tokens.spaceXs),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  msg.horarioLabel!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
