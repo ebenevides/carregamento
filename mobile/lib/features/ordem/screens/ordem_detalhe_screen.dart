@@ -6,6 +6,8 @@ import '../../../core/theme/app_theme_tokens.dart';
 import '../../divergencia/screens/registrar_divergencia_screen.dart';
 import '../../fila/models/ordem_model.dart';
 import '../../fila/providers/fila_provider.dart';
+import '../../fila/widgets/confirmar_acao_dialog.dart';
+import '../../fila/widgets/rejeitar_bottom_sheet.dart';
 
 class OrdemDetalheScreen extends ConsumerWidget {
   const OrdemDetalheScreen({super.key, required this.ordemId});
@@ -15,24 +17,42 @@ class OrdemDetalheScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordemAsync = ref.watch(ordemDetalheProvider(ordemId));
+    final ordemValue = ordemAsync.valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalhe da ordem')),
+      appBar: AppBar(
+        title: const Text('Detalhe da ordem'),
+        actions: [
+          if (ordemValue != null)
+            IconButton(
+              tooltip: 'Registrar divergência',
+              icon: const Icon(Icons.warning_amber_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      RegistrarDivergenciaScreen(ordemId: ordemValue.id),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: ordemAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => _ErroDetalhe(
           onRetry: () => ref.invalidate(ordemDetalheProvider(ordemId)),
         ),
-        data: (ordem) => _ConteudoDetalhe(ordem: ordem),
+        data: (ordem) => _ConteudoDetalhe(ordem: ordem, ref: ref),
       ),
+      bottomNavigationBar: _buildBottomBar(context, ref, ordemValue),
     );
   }
 }
 
 class _ConteudoDetalhe extends StatelessWidget {
-  const _ConteudoDetalhe({required this.ordem});
+  const _ConteudoDetalhe({required this.ordem, required this.ref});
 
   final OrdemModel ordem;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +124,6 @@ class _ConteudoDetalhe extends StatelessWidget {
             items: [
               _InfoItem('Ticket Guardian', ordem.ticketGuardian ?? '—'),
               _InfoItem('Pedido', ordem.pedidoNumero ?? '—'),
-              _InfoItem('Motorista', ordem.motoristaNome ?? '—'),
               if (ordem.placaCarreta != null)
                 _InfoItem('Carreta', ordem.placaCarreta!),
               if (ordem.clienteNome != null)
@@ -117,32 +136,8 @@ class _ConteudoDetalhe extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: tokens.spaceLg),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text('Abrir chat da ordem'),
-              onPressed: () => context.push('/chat/${ordem.id}'),
-            ),
-          ),
           SizedBox(height: tokens.spaceSm),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: tokens.warning,
-                foregroundColor: tokens.onWarning,
-              ),
-              icon: const Icon(Icons.report_problem_outlined),
-              label: const Text('Registrar divergência'),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => RegistrarDivergenciaScreen(ordemId: ordem.id),
-                ),
-              ),
-            ),
-          ),
+          _CardMotorista(ordem: ordem),
           SizedBox(height: tokens.spaceSm),
           TextButton.icon(
             onPressed: () => context.pop(),
@@ -367,6 +362,79 @@ class _AvisoDivergencia extends StatelessWidget {
   }
 }
 
+class _CardMotorista extends StatelessWidget {
+  const _CardMotorista({required this.ordem});
+  final OrdemModel ordem;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.appTokens;
+    final colors = Theme.of(context).colorScheme;
+    final unread = ordem.mensagensNaoLidas ?? 0;
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
+        onTap: () => context.push('/chat/${ordem.id}'),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.spaceMd),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: colors.primaryContainer,
+                child: Icon(Icons.person, color: colors.primary),
+              ),
+              SizedBox(width: tokens.spaceSm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ordem.motoristaNome ?? 'Motorista não informado',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    Text(
+                      ordem.placaVeiculo,
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              if (unread > 0)
+                Container(
+                  margin: EdgeInsets.only(right: tokens.spaceXs),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.error,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$unread',
+                    style: TextStyle(
+                      color: colors.onError,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              Icon(Icons.chat_bubble_outline, size: 20),
+              SizedBox(width: tokens.spaceXs),
+              Text(
+                'Abrir chat',
+                style: TextStyle(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Icon(Icons.chevron_right, color: colors.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ErroDetalhe extends StatelessWidget {
   const _ErroDetalhe({required this.onRetry});
   final VoidCallback onRetry;
@@ -388,6 +456,99 @@ class _ErroDetalhe extends StatelessWidget {
       ],
     ),
   );
+}
+
+Widget? _buildBottomBar(BuildContext context, WidgetRef ref, OrdemModel? ordem) {
+  if (ordem == null) return null;
+  final tokens = context.appTokens;
+
+  if (ordem.aguardando) {
+    return SafeArea(
+      minimum: EdgeInsets.all(tokens.spaceMd),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: tokens.success,
+            foregroundColor: tokens.onSuccess,
+          ),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Iniciar carregamento'),
+          onPressed: () => confirmarAcao(
+            context: context,
+            titulo: 'Iniciar carregamento?',
+            confirmar: 'Iniciar',
+            placa: ordem.placaVeiculo,
+            action: () =>
+                ref.read(filaProvider.notifier).iniciarCarregamento(ordem.id),
+          ),
+        ),
+      ),
+    );
+  }
+
+  if (ordem.emCarregamento) {
+    final colors = Theme.of(context).colorScheme;
+    return SafeArea(
+      minimum: EdgeInsets.symmetric(
+        horizontal: tokens.spaceMd,
+        vertical: tokens.spaceSm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.error,
+                side: BorderSide(color: colors.error),
+              ),
+              icon: const Icon(Icons.close),
+              label: const Text('Rejeitar'),
+              onPressed: () async {
+                final motivo = await showRejeitarBottomSheet(
+                  context,
+                  placa: ordem.placaVeiculo,
+                );
+                if (motivo == null || !context.mounted) return;
+                try {
+                  await ref
+                      .read(filaProvider.notifier)
+                      .rejeitar(ordem.id, motivo);
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Não foi possível rejeitar o caminhão.',
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+          SizedBox(width: tokens.spaceSm),
+          Expanded(
+            child: FilledButton.icon(
+              icon: const Icon(Icons.check),
+              label: const Text('Concluir'),
+              onPressed: () => confirmarAcao(
+                context: context,
+                titulo: 'Concluir carregamento?',
+                confirmar: 'Concluir',
+                placa: ordem.placaVeiculo,
+                action: () =>
+                    ref.read(filaProvider.notifier).concluirCarregamento(ordem.id),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return null;
 }
 
 String _formatarQuantidade(double value) => value == value.truncateToDouble()
