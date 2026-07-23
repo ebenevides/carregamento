@@ -3,9 +3,19 @@ import '../models/ordem_model.dart';
 import '../../../core/api/api_client.dart';
 import '../../auth/providers/auth_provider.dart';
 
-final filaProvider = StateNotifierProvider<FilaNotifier, AsyncValue<List<OrdemModel>>>(
-  (ref) => FilaNotifier(ref.watch(apiClientProvider), ref),
-);
+const tamanhoMinimoMotivoRejeicao = 5;
+
+String? validarMotivoRejeicao(String descricao) {
+  if (descricao.trim().length < tamanhoMinimoMotivoRejeicao) {
+    return 'Descreva o motivo (mín. $tamanhoMinimoMotivoRejeicao caracteres)';
+  }
+  return null;
+}
+
+final filaProvider =
+    StateNotifierProvider<FilaNotifier, AsyncValue<List<OrdemModel>>>(
+      (ref) => FilaNotifier(ref.watch(apiClientProvider), ref),
+    );
 
 class FilaNotifier extends StateNotifier<AsyncValue<List<OrdemModel>>> {
   final ApiClient _api;
@@ -32,28 +42,39 @@ class FilaNotifier extends StateNotifier<AsyncValue<List<OrdemModel>>> {
     final user = _ref.read(authProvider).valueOrNull;
     if (user == null) return;
 
-    await _api.post('/ordens-carregamento/$ordemId/iniciar', data: {
-      'operador_id': user.id,
-      'ponto_carregamento_id': user.pontoCarregamentoId,
-    });
+    await _api.post(
+      '/ordens-carregamento/$ordemId/iniciar',
+      data: {
+        'operador_id': user.id,
+        'ponto_carregamento_id': user.pontoCarregamentoId,
+      },
+    );
+    _ref.invalidate(ordemDetalheProvider(ordemId));
     await carregar();
   }
 
   Future<void> concluirCarregamento(String ordemId) async {
     await _api.post('/ordens-carregamento/$ordemId/concluir');
+    _ref.invalidate(ordemDetalheProvider(ordemId));
     await carregar();
   }
 
   Future<void> rejeitar(String ordemId, String descricao) async {
-    await _api.post('/ordens-carregamento/$ordemId/rejeitar', data: {
-      'descricao': descricao,
-    });
+    final erro = validarMotivoRejeicao(descricao);
+    if (erro != null) throw ArgumentError(erro);
+
+    await _api.post(
+      '/ordens-carregamento/$ordemId/rejeitar',
+      data: {'descricao': descricao.trim()},
+    );
+    _ref.invalidate(ordemDetalheProvider(ordemId));
     await carregar();
   }
 }
 
-final ordemDetalheProvider = FutureProvider.family<OrdemModel, String>((ref, id) async {
-  final api = ref.watch(apiClientProvider);
-  final res = await api.get('/ordens-carregamento/$id');
-  return OrdemModel.fromJson(res.data['data'] ?? res.data);
-});
+final ordemDetalheProvider = FutureProvider.autoDispose
+    .family<OrdemModel, String>((ref, id) async {
+      final api = ref.watch(apiClientProvider);
+      final res = await api.get('/ordens-carregamento/$id');
+      return OrdemModel.fromJson(res.data['data'] ?? res.data);
+    });

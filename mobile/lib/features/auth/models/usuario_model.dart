@@ -14,14 +14,14 @@ class UsuarioModel {
   });
 
   factory UsuarioModel.fromJson(Map<String, dynamic> json) => UsuarioModel(
-        id: json['id'],
-        name: json['name'],
-        email: json['email'],
-        perfil: json['perfil'],
-        pontoCarregamentoId: json['ponto_carregamento_id'],
-      );
+    id: json['id'],
+    name: json['name'],
+    email: json['email'],
+    perfil: json['perfil'],
+    pontoCarregamentoId: json['ponto_carregamento_id'],
+  );
 
   bool get isOperador => perfil == 'OPERADOR';
   bool get isMotorista => perfil == 'MOTORISTA';
-  bool get isSupervisor => perfil == 'SUPERVISOR' || perfil == 'ADMINISTRADOR';
+  bool get isSupervisor => perfil == 'ADMIN' || perfil == 'EXPEDICAO';
 }

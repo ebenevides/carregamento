@@ -3,6 +3,11 @@
 ## Status atual
 Fases 0–15 concluídas (Operador + Motorista + Chat completos). 83 testes passando.
 
+**Refatoração visual mobile OPERADOR (2026-07-21):** tema Material 3 e paleta industrial configurável
+centralizados; fila, detalhe, divergência, chat, login e rejeição atualizados para hierarquia operacional;
+operações de divergência e validações compartilhadas removidas das telas. Contratos HTTP e regras do backend
+permanecem inalterados.
+
 **Resumo do entregue (Fases 11–15):**
 - Motorista como User do sistema (documento, motorista_user_id, resolução automática)
 - Endpoint minha-ordem para motorista

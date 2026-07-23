@@ -32,7 +32,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // If logged in and trying to access wrong area for profile
       if (loggedIn && user.isMotorista) {
-        final motoristaPath = state.matchedLocation.startsWith('/motorista') ||
+        final motoristaPath =
+            state.matchedLocation.startsWith('/motorista') ||
             state.matchedLocation.startsWith('/chat');
         if (!motoristaPath && state.matchedLocation != '/login') {
           return '/motorista/minha-carga';
@@ -46,7 +47,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/fila', builder: (_, _) => const FilaScreen()),
       GoRoute(
         path: '/ordem/:id',
-        builder: (_, state) => OrdemDetalheScreen(ordemId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            OrdemDetalheScreen(ordemId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/motorista/minha-carga',
@@ -54,7 +56,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/chat/:ordemId',
-        builder: (_, state) => ChatScreen(ordemId: state.pathParameters['ordemId']!),
+        builder: (_, state) =>
+            ChatScreen(ordemId: state.pathParameters['ordemId']!),
       ),
     ],
   );

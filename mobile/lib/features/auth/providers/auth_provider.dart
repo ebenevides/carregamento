@@ -3,9 +3,13 @@ import '../../auth/models/usuario_model.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/storage/secure_storage.dart';
 
-final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<UsuarioModel?>>(
-  (ref) => AuthNotifier(ref.watch(apiClientProvider), ref.watch(secureStorageProvider)),
-);
+final authProvider =
+    StateNotifierProvider<AuthNotifier, AsyncValue<UsuarioModel?>>(
+      (ref) => AuthNotifier(
+        ref.watch(apiClientProvider),
+        ref.watch(secureStorageProvider),
+      ),
+    );
 
 class AuthNotifier extends StateNotifier<AsyncValue<UsuarioModel?>> {
   final ApiClient _api;
@@ -32,10 +36,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<UsuarioModel?>> {
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      final res = await _api.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
+      final res = await _api.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
 
       final data = res.data;
       final user = UsuarioModel.fromJson(data['user']);

@@ -35,7 +35,8 @@ class OrdemMotoristaModel {
     this.divergenciasAbertas,
   });
 
-  factory OrdemMotoristaModel.fromJson(Map<String, dynamic> j) => OrdemMotoristaModel(
+  factory OrdemMotoristaModel.fromJson(Map<String, dynamic> j) =>
+      OrdemMotoristaModel(
         id: j['id'],
         ticketGuardian: j['ticket_guardian'],
         produtoCodigo: j['produto_codigo'],
@@ -47,8 +48,12 @@ class OrdemMotoristaModel {
         statusLabel: j['status_label'],
         motoristaNome: j['motorista_nome'],
         tara: j['tara'] != null ? (j['tara'] as num).toDouble() : null,
-        pesoBruto: j['peso_bruto'] != null ? (j['peso_bruto'] as num).toDouble() : null,
-        pesoLiquido: j['peso_liquido'] != null ? (j['peso_liquido'] as num).toDouble() : null,
+        pesoBruto: j['peso_bruto'] != null
+            ? (j['peso_bruto'] as num).toDouble()
+            : null,
+        pesoLiquido: j['peso_liquido'] != null
+            ? (j['peso_liquido'] as num).toDouble()
+            : null,
         pilhaProduto: j['pilha_produto'],
         pontoCarregamento: j['ponto_carregamento'],
         divergenciasAbertas: j['divergencias_abertas'],
@@ -57,6 +62,5 @@ class OrdemMotoristaModel {
   bool get emCarregamento => status == 'EM_CARREGAMENTO';
   bool get podeSePosicionar => status == 'EM_CARREGAMENTO';
   bool get aguardando => status == 'AGUARDANDO_CARREGAMENTO';
-  bool get estaAtivo =>
-      !['CANCELADO', 'FINALIZADO'].contains(status);
+  bool get estaAtivo => !['CANCELADO', 'FINALIZADO'].contains(status);
 }

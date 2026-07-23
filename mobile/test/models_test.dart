@@ -23,10 +23,27 @@ void main() {
 
     test('isOperador retorna true para OPERADOR', () {
       final u = UsuarioModel.fromJson({
-        'id': 2, 'name': 'Op', 'email': 'op@t.com', 'perfil': 'OPERADOR', 'ponto_carregamento_id': 5,
+        'id': 2,
+        'name': 'Op',
+        'email': 'op@t.com',
+        'perfil': 'OPERADOR',
+        'ponto_carregamento_id': 5,
       });
       expect(u.isOperador, isTrue);
       expect(u.isMotorista, isFalse);
+    });
+
+    test('isSupervisor espelha perfis ADMIN e EXPEDICAO do backend', () {
+      for (final perfil in ['ADMIN', 'EXPEDICAO']) {
+        final u = UsuarioModel.fromJson({
+          'id': 3,
+          'name': perfil,
+          'email': 'gestao@teste.com',
+          'perfil': perfil,
+          'ponto_carregamento_id': null,
+        });
+        expect(u.isSupervisor, isTrue, reason: 'perfil=$perfil');
+      }
     });
   });
 
@@ -50,8 +67,16 @@ void main() {
       'status_label': 'Aguardando Carregamento',
       'iniciado_em': null,
       'concluido_em': null,
-      'pilha_produto': {'id': 1, 'codigo': 'PILHA001', 'descricao': 'Pilha Brita'},
-      'ponto_carregamento': {'id': 1, 'codigo': 'PONTO001', 'descricao': 'Ponto 1'},
+      'pilha_produto': {
+        'id': 1,
+        'codigo': 'PILHA001',
+        'descricao': 'Pilha Brita',
+      },
+      'ponto_carregamento': {
+        'id': 1,
+        'codigo': 'PONTO001',
+        'descricao': 'Ponto 1',
+      },
       'divergencias_abertas': 0,
       'created_at': '2026-07-09T12:00:00.000Z',
     };
@@ -67,7 +92,10 @@ void main() {
     });
 
     test('aguardando retorna true para AGUARDANDO_CARREGAMENTO', () {
-      final o = OrdemModel.fromJson({...json, 'status': 'AGUARDANDO_CARREGAMENTO'});
+      final o = OrdemModel.fromJson({
+        ...json,
+        'status': 'AGUARDANDO_CARREGAMENTO',
+      });
       expect(o.aguardando, isTrue);
       expect(o.emCarregamento, isFalse);
     });
@@ -114,8 +142,16 @@ void main() {
       'tara': 12.0,
       'peso_bruto': null,
       'peso_liquido': null,
-      'pilha_produto': {'id': 1, 'codigo': 'PILHA002', 'descricao': 'Pilha Areia'},
-      'ponto_carregamento': {'id': 2, 'codigo': 'PONTO002', 'descricao': 'Unidade 2'},
+      'pilha_produto': {
+        'id': 1,
+        'codigo': 'PILHA002',
+        'descricao': 'Pilha Areia',
+      },
+      'ponto_carregamento': {
+        'id': 2,
+        'codigo': 'PONTO002',
+        'descricao': 'Unidade 2',
+      },
       'divergencias_abertas': 0,
     };
 
@@ -128,13 +164,19 @@ void main() {
     });
 
     test('podeSePosicionar retorna true para EM_CARREGAMENTO', () {
-      final o = OrdemMotoristaModel.fromJson({...json, 'status': 'EM_CARREGAMENTO'});
+      final o = OrdemMotoristaModel.fromJson({
+        ...json,
+        'status': 'EM_CARREGAMENTO',
+      });
       expect(o.podeSePosicionar, isTrue);
       expect(o.aguardando, isFalse);
     });
 
     test('aguardando retorna true para AGUARDANDO_CARREGAMENTO', () {
-      final o = OrdemMotoristaModel.fromJson({...json, 'status': 'AGUARDANDO_CARREGAMENTO'});
+      final o = OrdemMotoristaModel.fromJson({
+        ...json,
+        'status': 'AGUARDANDO_CARREGAMENTO',
+      });
       expect(o.aguardando, isTrue);
       expect(o.podeSePosicionar, isFalse);
     });
@@ -170,12 +212,16 @@ void main() {
       expect(m.mensagem, 'Pode posicionar');
       expect(m.isDoOperador, isTrue);
       expect(m.isDoMotorista, isFalse);
+      expect(m.horarioLabel, isNotNull);
     });
 
     test('isDoMotorista retorna true para MOTORISTA', () {
       final m = MensagemModel.fromJson({
-        'id': 2, 'remetente_id': 2, 'perfil_remetente': 'MOTORISTA',
-        'mensagem': 'Chegando', 'created_at': '2026-07-09T12:01:00.000Z',
+        'id': 2,
+        'remetente_id': 2,
+        'perfil_remetente': 'MOTORISTA',
+        'mensagem': 'Chegando',
+        'created_at': '2026-07-09T12:01:00.000Z',
       });
       expect(m.isDoMotorista, isTrue);
       expect(m.isDoOperador, isFalse);
@@ -184,8 +230,11 @@ void main() {
     test('isDoOperador retorna true para ADMIN e EXPEDICAO', () {
       for (final perfil in ['ADMIN', 'EXPEDICAO']) {
         final m = MensagemModel.fromJson({
-          'id': 3, 'remetente_id': 3, 'perfil_remetente': perfil,
-          'mensagem': 'teste', 'created_at': '2026-07-09T12:00:00.000Z',
+          'id': 3,
+          'remetente_id': 3,
+          'perfil_remetente': perfil,
+          'mensagem': 'teste',
+          'created_at': '2026-07-09T12:00:00.000Z',
         });
         expect(m.isDoOperador, isTrue, reason: 'perfil=$perfil');
       }
