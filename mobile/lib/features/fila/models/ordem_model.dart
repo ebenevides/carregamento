@@ -20,6 +20,7 @@ class OrdemModel {
   final Map<String, dynamic>? pilhaProduto;
   final Map<String, dynamic>? pontoCarregamento;
   final int? divergenciasAbertas;
+  final int? mensagensNaoLidas;
   final String? createdAt;
 
   const OrdemModel({
@@ -44,6 +45,7 @@ class OrdemModel {
     this.pilhaProduto,
     this.pontoCarregamento,
     this.divergenciasAbertas,
+    this.mensagensNaoLidas,
     this.createdAt,
   });
 
@@ -73,12 +75,14 @@ class OrdemModel {
     pilhaProduto: j['pilha_produto'],
     pontoCarregamento: j['ponto_carregamento'],
     divergenciasAbertas: j['divergencias_abertas'],
+    mensagensNaoLidas: j['mensagens_nao_lidas'],
     createdAt: j['created_at'],
   );
 
   bool get emCarregamento => status == 'EM_CARREGAMENTO';
   bool get aguardando => status == 'AGUARDANDO_CARREGAMENTO';
   bool get temDivergencia => (divergenciasAbertas ?? 0) > 0;
+  bool get temMensagensNaoLidas => (mensagensNaoLidas ?? 0) > 0;
 
   bool get estaAtivo => !['CANCELADO', 'FINALIZADO'].contains(status);
 }
