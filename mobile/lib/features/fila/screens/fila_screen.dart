@@ -6,6 +6,8 @@ import '../../../core/theme/app_theme_tokens.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/ordem_model.dart';
 import '../providers/fila_provider.dart';
+import '../widgets/confirmar_acao_dialog.dart';
+import '../widgets/rejeitar_bottom_sheet.dart';
 
 class FilaScreen extends ConsumerWidget {
   const FilaScreen({super.key});
@@ -233,11 +235,12 @@ class _OrdemCard extends ConsumerWidget {
                     ),
                     icon: const Icon(Icons.play_arrow),
                     label: const Text('Iniciar carregamento'),
-                    onPressed: () => _confirmarAcao(
-                      context,
-                      'Iniciar carregamento?',
-                      'Iniciar',
-                      () => ref
+                    onPressed: () => confirmarAcao(
+                      context: context,
+                      titulo: 'Iniciar carregamento?',
+                      confirmar: 'Iniciar',
+                      placa: ordem.placaVeiculo,
+                      action: () => ref
                           .read(filaProvider.notifier)
                           .iniciarCarregamento(ordem.id),
                     ),
@@ -254,7 +257,28 @@ class _OrdemCard extends ConsumerWidget {
                         ),
                         icon: const Icon(Icons.close),
                         label: const Text('Rejeitar'),
-                        onPressed: () => _mostrarModalRejeitar(context, ref),
+                        onPressed: () async {
+                          final motivo = await showRejeitarBottomSheet(
+                            context,
+                            placa: ordem.placaVeiculo,
+                          );
+                          if (motivo == null || !context.mounted) return;
+                          try {
+                            await ref
+                                .read(filaProvider.notifier)
+                                .rejeitar(ordem.id, motivo);
+                          } catch (_) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Não foi possível rejeitar o caminhão.',
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
                       ),
                     ),
                     SizedBox(width: context.appTokens.spaceSm),
@@ -262,11 +286,12 @@ class _OrdemCard extends ConsumerWidget {
                       child: FilledButton.icon(
                         icon: const Icon(Icons.check),
                         label: const Text('Concluir'),
-                        onPressed: () => _confirmarAcao(
-                          context,
-                          'Concluir carregamento?',
-                          'Concluir',
-                          () => ref
+                        onPressed: () => confirmarAcao(
+                          context: context,
+                          titulo: 'Concluir carregamento?',
+                          confirmar: 'Concluir',
+                          placa: ordem.placaVeiculo,
+                          action: () => ref
                               .read(filaProvider.notifier)
                               .concluirCarregamento(ordem.id),
                         ),
@@ -291,139 +316,8 @@ class _OrdemCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmarAcao(
-    BuildContext context,
-    String titulo,
-    String confirmar,
-    Future<void> Function() action,
-  ) async {
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(titulo),
-        content: Text('Placa ${ordem.placaVeiculo}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(confirmar),
-          ),
-        ],
-      ),
-    );
-    if (confirmou != true || !context.mounted) return;
-    try {
-      await action();
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível concluir a ação. Tente novamente.'),
-          ),
-        );
-      }
-    }
-  }
 
-  Future<void> _mostrarModalRejeitar(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final motivo = await showDialog<String>(
-      context: context,
-      builder: (_) => _RejeitarDialog(placa: ordem.placaVeiculo),
-    );
-    if (motivo == null || !context.mounted) return;
-    try {
-      await ref.read(filaProvider.notifier).rejeitar(ordem.id, motivo);
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível rejeitar o caminhão.'),
-          ),
-        );
-      }
-    }
-  }
-}
 
-class _RejeitarDialog extends StatefulWidget {
-  const _RejeitarDialog({required this.placa});
-  final String placa;
-
-  @override
-  State<_RejeitarDialog> createState() => _RejeitarDialogState();
-}
-
-class _RejeitarDialogState extends State<_RejeitarDialog> {
-  final _controller = TextEditingController();
-  String? _erro;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _confirmar() {
-    final erro = validarMotivoRejeicao(_controller.text);
-    if (erro != null) return setState(() => _erro = erro);
-    Navigator.pop(context, _controller.text.trim());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return AlertDialog(
-      icon: Icon(Icons.cancel_outlined, color: colors.error, size: 36),
-      title: const Text('Rejeitar caminhão'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Placa', style: Theme.of(context).textTheme.labelMedium),
-          Text(
-            widget.placa,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          SizedBox(height: context.appTokens.spaceMd),
-          TextField(
-            controller: _controller,
-            minLines: 2,
-            maxLines: 3,
-            maxLength: 1000,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: 'Motivo da rejeição *',
-              hintText: 'Mínimo de 5 caracteres',
-              errorText: _erro,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: colors.error,
-            foregroundColor: colors.onError,
-          ),
-          onPressed: _confirmar,
-          icon: const Icon(Icons.close),
-          label: const Text('Rejeitar'),
-        ),
-      ],
-    );
-  }
 }
 
 class _DataItem extends StatelessWidget {
