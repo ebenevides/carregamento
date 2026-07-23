@@ -57,7 +57,6 @@ class _ConteudoDetalhe extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.appTokens;
-    final colors = Theme.of(context).colorScheme;
     final pilha = ordem.pilhaProduto?['codigo']?.toString();
     final pontoCodigo = ordem.pontoCarregamento?['codigo']?.toString();
     final pontoDescricao = ordem.pontoCarregamento?['descricao']?.toString();

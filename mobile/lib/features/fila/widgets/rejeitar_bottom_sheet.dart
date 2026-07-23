@@ -3,6 +3,18 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme_tokens.dart';
 import '../providers/fila_provider.dart';
 
+const _motivosRejeicao = [
+  ('Veículo divergente', 'Placa ou veículo incorreto'),
+  ('Motorista divergente', 'Motorista diferente da ordem'),
+  ('Produto divergente', 'Produto diferente da ordem'),
+  ('Quantidade divergente', 'Volume diferente do previsto'),
+  ('Ticket inválido', 'Ticket ausente ou incorreto'),
+  ('Tara inválida', 'Peso de tara inconsistente'),
+  ('Pilha sem produto configurado', 'Pilha não possui produto'),
+  ('Ponto de carregamento indisponível', 'Ponto sem condição de operar'),
+  ('Outro', 'Outro problema operacional'),
+];
+
 Future<String?> showRejeitarBottomSheet(
   BuildContext context, {
   required String placa,
@@ -34,19 +46,29 @@ class _RejeitarBottomSheetContent extends StatefulWidget {
 
 class _RejeitarBottomSheetContentState
     extends State<_RejeitarBottomSheetContent> {
-  final _controller = TextEditingController();
+  String? _motivoSelecionado;
+  final _obsController = TextEditingController();
   String? _erro;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _obsController.dispose();
     super.dispose();
   }
 
   void _confirmar() {
-    final erro = validarMotivoRejeicao(_controller.text);
+    if (_motivoSelecionado == null) {
+      return setState(() => _erro = 'Selecione o motivo da rejeição');
+    }
+
+    final obs = _obsController.text.trim();
+    final descricao = obs.isEmpty
+        ? _motivoSelecionado!
+        : '$_motivoSelecionado\nOBS: $obs';
+
+    final erro = validarMotivoRejeicao(descricao);
     if (erro != null) return setState(() => _erro = erro);
-    Navigator.pop(context, _controller.text.trim());
+    Navigator.pop(context, descricao);
   }
 
   @override
@@ -94,16 +116,40 @@ class _RejeitarBottomSheetContentState
             ),
           ),
           SizedBox(height: tokens.spaceMd),
-          TextField(
-            controller: _controller,
-            minLines: 2,
-            maxLines: 3,
-            maxLength: 1000,
-            autofocus: true,
+          DropdownButtonFormField<String>(
+            initialValue: _motivoSelecionado,
             decoration: InputDecoration(
               labelText: 'Motivo da rejeição *',
-              hintText: 'Mínimo de 5 caracteres',
               errorText: _erro,
+              helperText: _motivoSelecionado != null
+                  ? _motivosRejeicao.firstWhere((m) => m.$1 == _motivoSelecionado).$2
+                  : null,
+              helperMaxLines: 2,
+            ),
+            isExpanded: true,
+            hint: const Text('Selecione o motivo'),
+            items: _motivosRejeicao.map((m) {
+              return DropdownMenuItem<String>(
+                value: m.$1,
+                child: Text(m.$1),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _motivoSelecionado = value;
+                _erro = null;
+              });
+            },
+          ),
+          SizedBox(height: tokens.spaceMd),
+          TextField(
+            controller: _obsController,
+            minLines: 1,
+            maxLines: 3,
+            maxLength: 500,
+            decoration: const InputDecoration(
+              labelText: 'Observação (opcional)',
+              hintText: 'Detalhes adicionais sobre o problema…',
             ),
           ),
           SizedBox(height: tokens.spaceMd),
