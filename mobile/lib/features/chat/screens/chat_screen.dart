@@ -70,9 +70,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
             child: chat.mensagens.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
@@ -142,7 +143,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               left: tokens.spaceMd,
               right: tokens.spaceMd,
               top: tokens.spaceSm,
-              bottom: MediaQuery.of(context).viewInsets.bottom + tokens.spaceSm,
+              bottom: tokens.spaceSm,
             ),
             child: Row(
               children: [
@@ -182,6 +183,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
