@@ -138,12 +138,6 @@ class _ConteudoDetalhe extends StatelessWidget {
           ),
           SizedBox(height: tokens.spaceSm),
           _CardMotorista(ordem: ordem),
-          SizedBox(height: tokens.spaceSm),
-          TextButton.icon(
-            onPressed: () => context.pop(),
-            icon: Icon(Icons.arrow_back, color: colors.primary),
-            label: const Text('Voltar para a fila'),
-          ),
         ],
       ),
     );
